@@ -178,6 +178,12 @@
       <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.pitest</groupId>
+      <artifactId>pitest-maven</artifactId>
+      <version>1.5.1</version>
+      <type>maven-plugin</type>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -193,6 +199,7 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
@@ -216,6 +223,20 @@
             <exclude>src/test/resources/keyStoreClientPassword.txt</exclude>
             <exclude>src/test/resources/keyStoreServerPassword.txt</exclude>
           </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.5.1</version>
+        <configuration>
+          <targetClasses>
+            <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCache</param>
+          </targetClasses>
+          <targetTests>
+            <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCachePutTest</param>
+            <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCacheGetTest</param>
+          </targetTests>
         </configuration>
       </plugin>
       <plugin>
@@ -259,6 +280,14 @@
             </goals>
           </execution>
         </executions>
+      </plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><source>11</source><target>11</target></configuration></plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
       </plugin>
     </plugins>
   </build>

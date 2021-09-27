@@ -27,6 +27,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Map.Entry;
@@ -55,7 +56,7 @@ public class LedgerMetadataIndex implements Closeable {
     private final AtomicInteger ledgersCount;
 
     private final KeyValueStorage ledgersDb;
-    private final LedgerMetadataIndexStats stats;
+    //private final LedgerMetadataIndexStats stats;
 
     // Holds ledger modifications applied in memory map, and pending to be flushed on db
     private final ConcurrentLinkedQueue<Entry<Long, LedgerData>> pendingLedgersUpdates;
@@ -67,6 +68,7 @@ public class LedgerMetadataIndex implements Closeable {
             StatsLogger stats) throws IOException {
         ledgersDb = storageFactory.newKeyValueStorage(basePath, "ledgers", DbConfigType.Small, conf);
 
+        System.out.println(ledgersDb);
         ledgers = new ConcurrentLongHashMap<>();
         ledgersCount = new AtomicInteger();
 
@@ -76,6 +78,7 @@ public class LedgerMetadataIndex implements Closeable {
             while (iterator.hasNext()) {
                 Entry<byte[], byte[]> entry = iterator.next();
                 long ledgerId = ArrayUtil.getLong(entry.getKey(), 0);
+                System.out.println(ledgerId);
                 LedgerData ledgerData = LedgerData.parseFrom(entry.getValue());
                 ledgers.put(ledgerId, ledgerData);
                 ledgersCount.incrementAndGet();
@@ -87,9 +90,11 @@ public class LedgerMetadataIndex implements Closeable {
         this.pendingLedgersUpdates = new ConcurrentLinkedQueue<Entry<Long, LedgerData>>();
         this.pendingDeletedLedgers = new ConcurrentLinkedQueue<Long>();
 
-        this.stats = new LedgerMetadataIndexStats(
+        System.out.println(ledgers.get(ArrayUtil.getLong("1".getBytes(), 0)));
+        System.out.println(ledgersCount.get()+ "COOOOOOOOOOUNTER");
+        /**this.stats = new LedgerMetadataIndexStats(
             stats,
-            () -> (long) ledgersCount.get());
+            () -> (long) ledgersCount.get());*/
     }
 
     @Override
