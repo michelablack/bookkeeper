@@ -43,4 +43,3 @@ node_modules
 package-lock.json
 # gradle
 build/
-.gradle/
