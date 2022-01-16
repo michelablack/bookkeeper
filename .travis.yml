@@ -3,7 +3,7 @@ addons:
   sonarcloud:
     organization: michelablack
     token:
-        secure: "i/Qta4EOg2b56zEYrgM8hjKrdq2cu6grVcUJG+wLzdUoMyKy6JL5gvm6AQi0tyuIJb0Vr+jOBGbhObBKPr8t7SkZYTmk0IaKZnmVuFHUBPRZHK5zf8B4MIDK0fyYM2fUA09vGlRwfBLxWYcyYcYjpBSe8FSQIKzzYc7mJ9lzQ4oPlYs0/RjKs6I189g8vZhIF8ky+pZy2vor5TdEr6vee+F7U54kp4dzRSV8gfqrhP8XOTauw6Flx+m9+UGxEumsMh7U6wlPC0GkqSqP58XCvMF8tdX5TPfnbKyplPb9p5fBh9DwdajIAbPZ4cMZIa/rn0YoD5Q9KWXAY4HCtLPY/l46lA0EC4jUVOSsd/I8j52oygZS7zm73wXVOWQBGN82Laxa+JcKqP6RJuG/OuH+HtMMSUfiVMGwS+zK6i4dotQ/DiTy2y9Ffm4SiXhrGiDGAmWEYzPp4NQIcnwzQ6BocVqfM2rbuxSlbJlWiA6XoubMHfryWs3ZDBdkaGIy6Axk6KBIRX7wo9NRod62NyE6K/YayXW1onZODiiEJ/JL5udgmd/kxevrU6VyTDcIl1nITZkPa6No902Bsk7Tudix1Rpo0z1RqWbGthZNKUJvlUHMN1XUC8fbE4I8dSu7qW7VjsNvCBGVJTKLV9bMPxpDS8BAQDKKmbx9PUdebs1ScZA="
+        secure: "4a5ce97e50ef372931a0fb8257a5668e95858e68"
 
   
 script:
