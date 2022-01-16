@@ -1,0 +1,17 @@
+org/apache/bookkeeper/http/service/package-info.class
+org/apache/bookkeeper/http/service/NullHttpService.class
+org/apache/bookkeeper/http/service/HttpServiceResponse.class
+org/apache/bookkeeper/http/service/ErrorHttpService.class
+org/apache/bookkeeper/http/HttpServer$Method.class
+org/apache/bookkeeper/http/HttpServiceProvider.class
+org/apache/bookkeeper/http/HttpServer$ApiType.class
+org/apache/bookkeeper/http/service/HeartbeatService.class
+org/apache/bookkeeper/http/AbstractHttpHandlerFactory.class
+org/apache/bookkeeper/http/service/HttpEndpointService.class
+org/apache/bookkeeper/http/HttpServer$StatusCode.class
+org/apache/bookkeeper/http/HttpServer.class
+org/apache/bookkeeper/http/package-info.class
+org/apache/bookkeeper/http/service/HttpServiceRequest.class
+org/apache/bookkeeper/http/HttpRouter.class
+org/apache/bookkeeper/http/NullHttpServiceProvider.class
+org/apache/bookkeeper/http/HttpServerLoader.class

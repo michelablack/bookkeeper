@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature=" g++ 9 x86_64-linux-gnu -msse4.2 -mpclmul -Wall -Wno-long-long -Wpointer-arith -Wconversion -fPIC -m64 -c -O2 -fno-exceptions -fPIC -fno-rtti -DLinux -DGNU_GCC -Icirce-checksum/target/nar/javah-include -I../../../usr/lib/jvm/java-11-openjdk-amd64/include -I../../../usr/lib/jvm/java-11-openjdk-amd64/include/linux">
+      <target file="crc32c_sse42_jni.e7899066.o" lastModified="17a106e2e6a">
+         <source file="../../../../src/main/circe/cpp/crc32c_sse42_jni.cpp" lastModified="17a0b163416"/>
+      </target>
+      <target file="crc32c_sse42.faed4600.o" lastModified="17a105a3047">
+         <source file="../../../../src/main/circe/cpp/crc32c_sse42.cpp" lastModified="17a0b163416"/>
+      </target>
+   </processor>
+</history>

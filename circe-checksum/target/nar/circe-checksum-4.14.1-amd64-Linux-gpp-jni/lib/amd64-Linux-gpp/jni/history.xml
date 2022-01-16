@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="9 -shared -lrt -fexceptions -lstdc++">
+      <target file="libcirce-checksum.so" lastModified="17a106e3566">
+         <source file="../../../../obj/amd64-Linux-gpp/crc32c_sse42.faed4600.o" lastModified="17a105a3047"/>
+         <source file="../../../../obj/amd64-Linux-gpp/crc32c_sse42_jni.e7899066.o" lastModified="17a106e2e6a"/>
+      </target>
+   </processor>
+</history>

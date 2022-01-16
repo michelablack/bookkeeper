@@ -1,0 +1,8 @@
+org/apache/bookkeeper/http/vertx/VertxHttpServer$2.class
+org/apache/bookkeeper/http/vertx/VertxHttpHandlerFactory$1.class
+org/apache/bookkeeper/http/vertx/VertxAbstractHandler.class
+org/apache/bookkeeper/http/vertx/package-info.class
+org/apache/bookkeeper/http/vertx/VertxAbstractHandler$1.class
+org/apache/bookkeeper/http/vertx/VertxHttpHandlerFactory.class
+org/apache/bookkeeper/http/vertx/VertxHttpServer.class
+org/apache/bookkeeper/http/vertx/VertxHttpServer$1.class

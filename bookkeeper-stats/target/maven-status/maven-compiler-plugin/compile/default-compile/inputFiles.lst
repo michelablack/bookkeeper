@@ -1,0 +1,14 @@
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/Stats.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/StatsProvider.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/CachingStatsLogger.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/NullStatsProvider.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/Counter.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/CachingStatsProvider.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/Gauge.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/annotations/package-info.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/package-info.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/OpStatsData.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/StatsLogger.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/OpStatsLogger.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/NullStatsLogger.java
+/home/michelablack/bookkeeper/bookkeeper-stats/src/main/java/org/apache/bookkeeper/stats/annotations/StatsDoc.java

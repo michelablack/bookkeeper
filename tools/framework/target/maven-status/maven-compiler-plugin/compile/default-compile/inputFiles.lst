@@ -1,0 +1,14 @@
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/CliCommandGroup.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/common/BKCommandCategories.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/common/package-info.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/CliSpec.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/package-info.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/CliCommand.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/Command.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/Cli.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/common/BKFlags.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/HelpCommand.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/CommandGroup.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/CommandUtils.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/common/BKCommand.java
+/home/michelablack/bookkeeper/tools/framework/src/main/java/org/apache/bookkeeper/tools/framework/CliFlags.java

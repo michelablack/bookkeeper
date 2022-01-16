@@ -1,0 +1,16 @@
+org/apache/bookkeeper/stats/annotations/package-info.class
+org/apache/bookkeeper/stats/CachingStatsLogger.class
+org/apache/bookkeeper/stats/NullStatsProvider.class
+org/apache/bookkeeper/stats/CachingStatsProvider.class
+org/apache/bookkeeper/stats/StatsProvider.class
+org/apache/bookkeeper/stats/Gauge.class
+org/apache/bookkeeper/stats/StatsLogger.class
+org/apache/bookkeeper/stats/package-info.class
+org/apache/bookkeeper/stats/Stats.class
+org/apache/bookkeeper/stats/annotations/StatsDoc.class
+org/apache/bookkeeper/stats/OpStatsLogger.class
+org/apache/bookkeeper/stats/OpStatsData.class
+org/apache/bookkeeper/stats/NullStatsLogger$NullCounter.class
+org/apache/bookkeeper/stats/NullStatsLogger.class
+org/apache/bookkeeper/stats/Counter.class
+org/apache/bookkeeper/stats/NullStatsLogger$NullOpStatsLogger.class

@@ -1,0 +1,16 @@
+org/apache/bookkeeper/tools/common/BKFlags.class
+org/apache/bookkeeper/tools/common/package-info.class
+org/apache/bookkeeper/tools/framework/CliSpec$1.class
+org/apache/bookkeeper/tools/framework/CommandUtils.class
+org/apache/bookkeeper/tools/framework/HelpCommand.class
+org/apache/bookkeeper/tools/framework/CliSpec$Builder.class
+org/apache/bookkeeper/tools/common/BKCommandCategories.class
+org/apache/bookkeeper/tools/framework/Cli.class
+org/apache/bookkeeper/tools/framework/Command.class
+org/apache/bookkeeper/tools/framework/CliCommandGroup.class
+org/apache/bookkeeper/tools/framework/CliSpec.class
+org/apache/bookkeeper/tools/framework/CommandGroup.class
+org/apache/bookkeeper/tools/common/BKCommand.class
+org/apache/bookkeeper/tools/framework/CliCommand.class
+org/apache/bookkeeper/tools/framework/package-info.class
+org/apache/bookkeeper/tools/framework/CliFlags.class

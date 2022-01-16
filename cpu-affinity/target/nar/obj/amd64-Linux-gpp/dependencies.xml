@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dependencies>
+   <includePath signature="/Icpu-affinity/target/nar/javah-include /I../../../usr/lib/jvm/java-11-openjdk-amd64/include /I../../../usr/lib/jvm/java-11-openjdk-amd64/include/linux">
+      <source file="../../javah-include/org_apache_bookkeeper_common_util_affinity_impl_CpuAffinityJni.h" lastModified="17a106e3c36">
+         <include file="../../../../../../../../usr/lib/jvm/java-11-openjdk-amd64/include/jni.h"/>
+      </source>
+      <source file="../../../../src/main/affinity/cpp/affinity_jni.c" lastModified="17a0b163bea">
+         <include file="../../javah-include/org_apache_bookkeeper_common_util_affinity_impl_CpuAffinityJni.h"/>
+         <sysinclude file="../../../../../../../../usr/include/sched.h"/>
+         <sysinclude file="../../../../../../../../usr/include/unistd.h"/>
+         <sysinclude file="../../../../../../../../usr/include/unistd.h"/>
+         <sysinclude file="../../../../../../../../usr/include/errno.h"/>
+         <sysinclude file="../../../../../../../../usr/include/string.h"/>
+      </source>
+   </includePath>
+</dependencies>

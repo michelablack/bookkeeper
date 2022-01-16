@@ -1,0 +1,15 @@
+org/apache/bookkeeper/stats/prometheus/ScopeContext.class
+org/apache/bookkeeper/stats/prometheus/SimpleGauge.class
+org/apache/bookkeeper/stats/prometheus/DataSketchesOpStatsLogger$LocalData.class
+org/apache/bookkeeper/stats/prometheus/PrometheusMetricsProvider.class
+org/apache/bookkeeper/stats/prometheus/PrometheusServlet.class
+org/apache/bookkeeper/stats/prometheus/DataSketchesOpStatsLogger$1.class
+org/apache/bookkeeper/stats/prometheus/LongAdderCounter.class
+org/apache/bookkeeper/stats/prometheus/PrometheusMetricsProvider$2.class
+org/apache/bookkeeper/stats/prometheus/DataSketchesOpStatsLogger$ThreadLocalAccessor.class
+org/apache/bookkeeper/stats/prometheus/PrometheusTextFormatUtil.class
+org/apache/bookkeeper/stats/prometheus/DataSketchesOpStatsLogger.class
+org/apache/bookkeeper/stats/prometheus/PrometheusMetricsProvider$1.class
+org/apache/bookkeeper/stats/prometheus/package-info.class
+org/apache/bookkeeper/stats/prometheus/DataSketchesOpStatsLogger$ThreadLocalAccessor$1.class
+org/apache/bookkeeper/stats/prometheus/PrometheusStatsLogger.class

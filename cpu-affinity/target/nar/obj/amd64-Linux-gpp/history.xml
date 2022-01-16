@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature=" gcc 9 x86_64-linux-gnu -Wall -Wno-long-long -Wpointer-arith -Wconversion -fPIC -m64 -c -fPIC -DLinux -DGNU_GCC -Icpu-affinity/target/nar/javah-include -I../../../usr/lib/jvm/java-11-openjdk-amd64/include -I../../../usr/lib/jvm/java-11-openjdk-amd64/include/linux">
+      <target file="affinity_jni.5c16bfe1.o" lastModified="17a106e3d0e">
+         <source file="../../../../src/main/affinity/cpp/affinity_jni.c" lastModified="17a0b16341a"/>
+      </target>
+   </processor>
+</history>

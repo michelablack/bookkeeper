@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dependencies>
+   <includePath signature="/Icirce-checksum/target/nar/javah-include /I../../../usr/lib/jvm/java-11-openjdk-amd64/include /I../../../usr/lib/jvm/java-11-openjdk-amd64/include/linux">
+      <source file="../../../../src/main/circe/include/int_types.h" lastModified="17a0b1637fe">
+         <sysinclude file="../../../../../../../../usr/include/stdint.h"/>
+      </source>
+      <source file="../../../../src/main/circe/cpp/gf2.hpp" lastModified="17a0b1637fe">
+         <include file="../../../../src/main/circe/include/int_types.h"/>
+      </source>
+      <source file="../../../../src/main/circe/cpp/crc32c_sse42.cpp" lastModified="17a0b1643b6">
+         <include file="../../../../src/main/circe/include/crc32c_sse42.hpp"/>
+         <include file="../../../../src/main/circe/cpp/gf2.hpp"/>
+         <sysinclude file="../../../../../../../../usr/include/assert.h"/>
+         <sysinclude file="../../../../../../../../usr/include/stdio.h"/>
+      </source>
+      <source file="../../javah-include/com_scurrilous_circe_crc_Sse42Crc32C.h" lastModified="17a106e29fe">
+         <include file="../../../../../../../../usr/lib/jvm/java-11-openjdk-amd64/include/jni.h"/>
+      </source>
+      <source file="../../../../src/main/circe/include/crc32c_sse42.hpp" lastModified="17a0b163416">
+         <include file="../../../../src/main/circe/include/int_types.h"/>
+      </source>
+      <source file="../../../../src/main/circe/cpp/crc32c_sse42_jni.cpp" lastModified="17a0b1637fe">
+         <include file="../../javah-include/com_scurrilous_circe_crc_Sse42Crc32C.h"/>
+         <include file="../../../../src/main/circe/include/crc32c_sse42.hpp"/>
+      </source>
+   </includePath>
+</dependencies>

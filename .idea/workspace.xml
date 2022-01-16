@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="63e998f3-eb81-49a1-8f99-37c5beb86055" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JUnit4 Test Class" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="workOffline" value="true" />
+      </MavenGeneralSettings>
+    </option>
+    <option name="enabledProfiles">
+      <list>
+        <option value="isw2" />
+      </list>
+    </option>
+    <option name="disabledProfiles">
+      <list>
+        <option value="apache-release" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1toNImmGxUGKBIvM7Jx4TOAQ8LD" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary" value="JUnit4" />
+    <property name="com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit4" value="" />
+    <property name="create.test.in.the.same.root" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="project.structure.last.edited" value="Libraries" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.38850576" />
+    <property name="settings.editor.selected.configurable" value="reference.settings.project.maven.repository.indices" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests" />
+      <recent name="$PROJECT_DIR$/bookkeeper-server/src/test/java/org/uniroma2/it/writeCacheTests" />
+      <recent name="$PROJECT_DIR$/bookkeeper-server/src/test/java/org/apache/bookkeeper/bookie/storage/ldb" />
+    </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="org.apache.bookkeeper.bookie.storage.ldb" />
+    </key>
+  </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn clean compile" />
+      <command value="mvn  test jacoco:prepare-agent test jacoco:report" />
+      <command value="mvn clean compile test" />
+      <command value="mvn jacoco:prepare-agent test jacoco:report" />
+      <command value="mvn clean install" />
+      <command value="mvn  test jacoco:prepare-agent jacoco:report4" />
+      <command value="mvn test" />
+      <command value="mvn org.pitest:pitest-maven:mutationCoverage4" />
+      <command value="mvn clean test" />
+      <command value="mvn  test jacoco:prepare-agent jacoco:report" />
+      <command value="mvn org.pitest:pitest-maven:mutationCoverage" />
+      <command value="mvn clean test jacoco:prepare-agent jacoco:report" />
+      <command value="mvn clean" />
+    </option>
+  </component>
+  <component name="RunManager" selected="JUnit.WriteCachePutTest.put">
+    <configuration name="LedgerMetadataIndexRangeTest.getInRangeTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bookkeeper-server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.uniroma2.it.ledgerMetadataIndexTests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.uniroma2.it.ledgerMetadataIndexTests" />
+      <option name="MAIN_CLASS_NAME" value="org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexRangeTest" />
+      <option name="METHOD_NAME" value="getInRangeTest" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LedgerMetadataIndexSetLacTest.deleteTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bookkeeper-server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.uniroma2.it.ledgerMetadataIndexTests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.uniroma2.it.ledgerMetadataIndexTests" />
+      <option name="MAIN_CLASS_NAME" value="org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexSetLacTest" />
+      <option name="METHOD_NAME" value="deleteTest" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="LedgerMetadataIndexSetLacTest.setExplicitLacTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bookkeeper-server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.uniroma2.it.ledgerMetadataIndexTests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.uniroma2.it.ledgerMetadataIndexTests" />
+      <option name="MAIN_CLASS_NAME" value="org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexSetLacTest" />
+      <option name="METHOD_NAME" value="setExplicitLacTest" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WriteCacheGetTest.get" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bookkeeper-server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.uniroma2.it.writeCacheTests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.uniroma2.it.writeCacheTests" />
+      <option name="MAIN_CLASS_NAME" value="org.uniroma2.it.writeCacheTests.WriteCacheGetTest" />
+      <option name="METHOD_NAME" value="get" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WriteCachePutTest.put" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="bookkeeper-server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.uniroma2.it.writeCacheTests.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.uniroma2.it.writeCacheTests" />
+      <option name="MAIN_CLASS_NAME" value="org.uniroma2.it.writeCacheTests.WriteCachePutTest" />
+      <option name="METHOD_NAME" value="put" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.WriteCachePutTest.put" />
+        <item itemvalue="JUnit.WriteCacheGetTest.get" />
+        <item itemvalue="JUnit.LedgerMetadataIndexRangeTest.getInRangeTest" />
+        <item itemvalue="JUnit.LedgerMetadataIndexSetLacTest.setExplicitLacTest" />
+        <item itemvalue="JUnit.LedgerMetadataIndexSetLacTest.deleteTest" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="63e998f3-eb81-49a1-8f99-37c5beb86055" name="Default Changelist" comment="" />
+      <created>1623431409191</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1623431409191</updated>
+      <workItem from="1623431412742" duration="351000" />
+      <workItem from="1623433912149" duration="4188000" />
+      <workItem from="1623599084667" duration="5640000" />
+      <workItem from="1623679723616" duration="3512000" />
+      <workItem from="1623683660893" duration="42000" />
+      <workItem from="1623683779662" duration="17524000" />
+      <workItem from="1623766393387" duration="11940000" />
+      <workItem from="1623856553544" duration="5740000" />
+      <workItem from="1623865286339" duration="664000" />
+      <workItem from="1624269199870" duration="4026000" />
+      <workItem from="1624352041362" duration="13600000" />
+      <workItem from="1625065839732" duration="9541000" />
+      <workItem from="1625152322066" duration="10627000" />
+      <workItem from="1625242012383" duration="10401000" />
+      <workItem from="1625308177574" duration="20402000" />
+      <workItem from="1628866413831" duration="5208000" />
+      <workItem from="1629184479712" duration="1591000" />
+      <workItem from="1629212041644" duration="944000" />
+      <workItem from="1629277409852" duration="8339000" />
+      <workItem from="1629383697628" duration="1402000" />
+      <workItem from="1629450017206" duration="591000" />
+      <workItem from="1629876837702" duration="591000" />
+      <workItem from="1629879394553" duration="1189000" />
+      <workItem from="1629985802617" duration="1098000" />
+      <workItem from="1629991164616" duration="593000" />
+      <workItem from="1630137239253" duration="721000" />
+      <workItem from="1632743246403" duration="1240000" />
+      <workItem from="1640508847930" duration="2076000" />
+      <workItem from="1641241354242" duration="5115000" />
+      <workItem from="1641314762767" duration="1115000" />
+      <workItem from="1641404182700" duration="20696000" />
+      <workItem from="1641462582730" duration="2681000" />
+      <workItem from="1641465441727" duration="593000" />
+      <workItem from="1641466048749" duration="6471000" />
+      <workItem from="1641514073853" duration="4872000" />
+      <workItem from="1641543528364" duration="1939000" />
+      <workItem from="1641587094750" duration="6643000" />
+      <workItem from="1641605125382" duration="597000" />
+      <workItem from="1641642580224" duration="588000" />
+      <workItem from="1641656141924" duration="2999000" />
+      <workItem from="1641736125509" duration="1141000" />
+      <workItem from="1641824267818" duration="3364000" />
+      <workItem from="1641843432656" duration="7795000" />
+      <workItem from="1641885507887" duration="358000" />
+      <workItem from="1641910038627" duration="2106000" />
+      <workItem from="1641943824701" duration="1888000" />
+      <workItem from="1641979938798" duration="5832000" />
+      <workItem from="1642002587651" duration="2257000" />
+      <workItem from="1642035453992" duration="813000" />
+      <workItem from="1642062789437" duration="17828000" />
+      <workItem from="1642160665196" duration="2495000" />
+      <workItem from="1642167878652" duration="5254000" />
+      <workItem from="1642187180256" duration="5050000" />
+      <workItem from="1642239103116" duration="2410000" />
+      <workItem from="1642263785020" duration="2804000" />
+      <workItem from="1642283236715" duration="2092000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexImpl.java</url>
+          <line>24</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

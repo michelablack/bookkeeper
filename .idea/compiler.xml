@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="bookkeeper-server" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="all-released-versions-image" target="1.8" />
+      <module name="all-versions-image" target="1.8" />
+      <module name="backward-compat" target="1.8" />
+      <module name="backward-compat-current-server-old-clients" target="1.8" />
+      <module name="bk-grpc-name-resolver" target="1.8" />
+      <module name="bkctl" target="1.8" />
+      <module name="bookkeeper" target="1.8" />
+      <module name="bookkeeper-benchmark" target="1.8" />
+      <module name="bookkeeper-common" target="1.8" />
+      <module name="bookkeeper-common-allocator" target="1.8" />
+      <module name="bookkeeper-dist" target="1.8" />
+      <module name="bookkeeper-dist-all" target="1.8" />
+      <module name="bookkeeper-dist-server" target="1.8" />
+      <module name="bookkeeper-http" target="1.8" />
+      <module name="bookkeeper-perf" target="1.8" />
+      <module name="bookkeeper-proto" target="1.8" />
+      <module name="bookkeeper-server" target="8" />
+      <module name="bookkeeper-server-shaded" target="1.8" />
+      <module name="bookkeeper-server-shaded-test" target="1.8" />
+      <module name="bookkeeper-server-tests-shaded" target="1.8" />
+      <module name="bookkeeper-server-tests-shaded-test" target="1.8" />
+      <module name="bookkeeper-stats-api" target="1.8" />
+      <module name="bookkeeper-stats-parent" target="1.8" />
+      <module name="bookkeeper-stats-providers" target="1.8" />
+      <module name="bookkeeper-stats-utils" target="1.8" />
+      <module name="bookkeeper-tools" target="1.8" />
+      <module name="bookkeeper-tools-framework" target="1.8" />
+      <module name="bookkeeper-tools-ledger" target="1.8" />
+      <module name="bookkeeper-tools-parent" target="1.8" />
+      <module name="buildtools" target="1.8" />
+      <module name="circe-checksum" target="1.8" />
+      <module name="cluster" target="1.8" />
+      <module name="codahale-metrics-provider" target="1.8" />
+      <module name="cpu-affinity" target="1.8" />
+      <module name="current-version-image" target="1.8" />
+      <module name="distributedlog" target="1.8" />
+      <module name="distributedlog-common" target="1.8" />
+      <module name="distributedlog-core" target="1.8" />
+      <module name="distributedlog-core-shaded" target="1.8" />
+      <module name="distributedlog-core-shaded-test" target="1.8" />
+      <module name="distributedlog-io" target="1.8" />
+      <module name="distributedlog-protocol" target="1.8" />
+      <module name="dlfs" target="1.8" />
+      <module name="docker-images" target="1.8" />
+      <module name="hierarchical-ledger-manager" target="1.8" />
+      <module name="hostname-bookieid" target="1.8" />
+      <module name="http-server" target="1.8" />
+      <module name="integration" target="1.8" />
+      <module name="integration-tests-base" target="1.8" />
+      <module name="integration-tests-base-groovy" target="1.8" />
+      <module name="integration-tests-topologies" target="1.8" />
+      <module name="integration-tests-utils" target="1.8" />
+      <module name="metadata-drivers-parent" target="1.8" />
+      <module name="metadata-stores-etcd" target="1.8" />
+      <module name="microbenchmarks" target="1.8" />
+      <module name="old-cookie-new-cluster" target="1.8" />
+      <module name="prometheus-metrics-provider" target="1.8" />
+      <module name="recovery-no-password" target="1.8" />
+      <module name="scripts" target="1.8" />
+      <module name="servlet-http-server" target="1.8" />
+      <module name="shaded-parent" target="1.8" />
+      <module name="shaded-tests-parent" target="1.8" />
+      <module name="smoke" target="1.8" />
+      <module name="standalone" target="1.8" />
+      <module name="statelib" target="1.8" />
+      <module name="stream-storage-api" target="1.8" />
+      <module name="stream-storage-cli" target="1.8" />
+      <module name="stream-storage-clients-parent" target="1.8" />
+      <module name="stream-storage-common" target="1.8" />
+      <module name="stream-storage-java-client" target="1.8" />
+      <module name="stream-storage-java-client-base" target="1.8" />
+      <module name="stream-storage-java-client-parent" target="1.8" />
+      <module name="stream-storage-java-kv-client" target="1.8" />
+      <module name="stream-storage-parent" target="1.8" />
+      <module name="stream-storage-proto" target="1.8" />
+      <module name="stream-storage-server" target="1.8" />
+      <module name="stream-storage-service-api" target="1.8" />
+      <module name="stream-storage-service-impl" target="1.8" />
+      <module name="stream-storage-service-parent" target="1.8" />
+      <module name="stream-storage-tests-common" target="1.8" />
+      <module name="tests-parent" target="1.8" />
+      <module name="upgrade" target="1.8" />
+      <module name="upgrade-direct" target="1.8" />
+      <module name="vertx-http-server" target="1.8" />
+      <module name="yahoo-custom-version" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="GreclipseSettings">
+    <option name="greclipsePath" value="$MAVEN_REPOSITORY$/org/codehaus/groovy/groovy-eclipse-batch/3.0.2-02/groovy-eclipse-batch-3.0.2-02.jar" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="bk-grpc-name-resolver" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bkctl" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-benchmark" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-common" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-common-allocator" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-dist-all" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-dist-server" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-perf" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-proto" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-server" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-server-shaded" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-server-shaded-test" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-server-tests-shaded" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-server-tests-shaded-test" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-stats-api" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-stats-utils" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-tools" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-tools-framework" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="bookkeeper-tools-ledger" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="buildtools" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="circe-checksum" options="-Xlint:deprecation -Xlint:unchecked -Xpkginfo:always -h $PROJECT_DIR$/circe-checksum/target/nar/javah-include" />
+      <module name="cluster" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="codahale-metrics-provider" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="cpu-affinity" options="-Xlint:deprecation -Xlint:unchecked -Xpkginfo:always -h $PROJECT_DIR$/cpu-affinity/target/nar/javah-include" />
+      <module name="distributedlog-common" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="distributedlog-core" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="distributedlog-core-shaded" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="distributedlog-core-shaded-test" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="distributedlog-protocol" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="dlfs" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="http-server" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="integration-tests-topologies" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="integration-tests-utils" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="metadata-stores-etcd" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="microbenchmarks" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="prometheus-metrics-provider" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="scripts" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="servlet-http-server" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="smoke" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="standalone" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="statelib" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-api" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-cli" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-common" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-java-client" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-java-client-base" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-java-kv-client" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-proto" options="-Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-server" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-service-api" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-service-impl" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+      <module name="stream-storage-tests-common" options="-Xlint:unchecked -Xpkginfo:always" />
+      <module name="vertx-http-server" options="-Werror -Xlint:deprecation -Xlint:unchecked -Xpkginfo:always" />
+    </option>
+  </component>
+</project>

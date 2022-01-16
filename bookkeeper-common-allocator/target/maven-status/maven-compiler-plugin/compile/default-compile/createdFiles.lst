@@ -1,0 +1,9 @@
+org/apache/bookkeeper/common/allocator/impl/package-info.class
+org/apache/bookkeeper/common/allocator/PoolingPolicy.class
+org/apache/bookkeeper/common/allocator/package-info.class
+org/apache/bookkeeper/common/allocator/OutOfMemoryPolicy.class
+org/apache/bookkeeper/common/allocator/impl/ByteBufAllocatorImpl$1.class
+org/apache/bookkeeper/common/allocator/ByteBufAllocatorBuilder.class
+org/apache/bookkeeper/common/allocator/LeakDetectionPolicy.class
+org/apache/bookkeeper/common/allocator/impl/ByteBufAllocatorBuilderImpl.class
+org/apache/bookkeeper/common/allocator/impl/ByteBufAllocatorImpl.class

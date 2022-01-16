@@ -1,0 +1,9 @@
+org/apache/bookkeeper/utils/affinity/NarSystem.class
+org/apache/bookkeeper/common/util/affinity/package-info.class
+org/apache/bookkeeper/common/util/affinity/CpuAffinity.class
+org/apache/bookkeeper/common/util/affinity/impl/CpuAffinityJni.class
+org/apache/bookkeeper/common/util/affinity/impl/IsolatedProcessors.class
+org/apache/bookkeeper/common/util/affinity/impl/CpuAffinityImpl.class
+org/apache/bookkeeper/common/util/affinity/impl/ProcessorsInfo.class
+org/apache/bookkeeper/common/util/affinity/impl/NativeUtils.class
+org/apache/bookkeeper/common/util/affinity/impl/package-info.class

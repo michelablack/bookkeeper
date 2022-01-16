@@ -1,0 +1,9 @@
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/impl/package-info.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/impl/CpuAffinityImpl.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/CpuAffinity.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/impl/NativeUtils.java
+/home/michelablack/bookkeeper/cpu-affinity/target/nar/nar-generated/org/apache/bookkeeper/utils/affinity/NarSystem.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/impl/ProcessorsInfo.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/impl/CpuAffinityJni.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/impl/IsolatedProcessors.java
+/home/michelablack/bookkeeper/cpu-affinity/src/main/java/org/apache/bookkeeper/common/util/affinity/package-info.java
