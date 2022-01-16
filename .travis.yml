@@ -1,9 +1,9 @@
 language: java
 addons:
   sonarcloud:
-    organization: michelablack
+    organization: "michelablack"
     token:
-        secure: "4a5ce97e50ef372931a0fb8257a5668e95858e68"
+        secure: "6d650eecef23cf16d16ac6cfb14dca78effecee6"
 
   
 script:
