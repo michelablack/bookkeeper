@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="63e998f3-eb81-49a1-8f99-37c5beb86055" name="Default Changelist" comment="" />
+    <list default="true" id="63e998f3-eb81-49a1-8f99-37c5beb86055" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.travis.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -94,6 +98,8 @@
       <command value="mvn org.pitest:pitest-maven:mutationCoverage" />
       <command value="mvn clean test jacoco:prepare-agent jacoco:report" />
       <command value="mvn clean" />
+      <command value="mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=michelablack_bookkeeper" />
+      <command value="mvn verify sonar:sonar" />
     </option>
   </component>
   <component name="RunManager" selected="JUnit.WriteCachePutTest.put">
@@ -251,7 +257,7 @@
       <workItem from="1642239103116" duration="2410000" />
       <workItem from="1642263785020" duration="2804000" />
       <workItem from="1642283236715" duration="2092000" />
-      <workItem from="1642322306812" duration="594000" />
+      <workItem from="1642322306812" duration="1516000" />
     </task>
     <servers />
   </component>
