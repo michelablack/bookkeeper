@@ -56,7 +56,7 @@ public class LedgerMetadataIndex implements Closeable {
     private final AtomicInteger ledgersCount;
 
     private final KeyValueStorage ledgersDb;
-    //private final LedgerMetadataIndexStats stats;
+    private final LedgerMetadataIndexStats stats;
 
     // Holds ledger modifications applied in memory map, and pending to be flushed on db
     private final ConcurrentLinkedQueue<Entry<Long, LedgerData>> pendingLedgersUpdates;
@@ -67,8 +67,6 @@ public class LedgerMetadataIndex implements Closeable {
     public LedgerMetadataIndex(ServerConfiguration conf, KeyValueStorageFactory storageFactory, String basePath,
             StatsLogger stats) throws IOException {
         ledgersDb = storageFactory.newKeyValueStorage(basePath, "ledgers", DbConfigType.Small, conf);
-
-        System.out.println(ledgersDb);
         ledgers = new ConcurrentLongHashMap<>();
         ledgersCount = new AtomicInteger();
 
@@ -78,7 +76,6 @@ public class LedgerMetadataIndex implements Closeable {
             while (iterator.hasNext()) {
                 Entry<byte[], byte[]> entry = iterator.next();
                 long ledgerId = ArrayUtil.getLong(entry.getKey(), 0);
-                System.out.println(ledgerId);
                 LedgerData ledgerData = LedgerData.parseFrom(entry.getValue());
                 ledgers.put(ledgerId, ledgerData);
                 ledgersCount.incrementAndGet();
@@ -90,11 +87,9 @@ public class LedgerMetadataIndex implements Closeable {
         this.pendingLedgersUpdates = new ConcurrentLinkedQueue<Entry<Long, LedgerData>>();
         this.pendingDeletedLedgers = new ConcurrentLinkedQueue<Long>();
 
-        System.out.println(ledgers.get(ArrayUtil.getLong("1".getBytes(), 0)));
-        System.out.println(ledgersCount.get()+ "COOOOOOOOOOUNTER");
-        /**this.stats = new LedgerMetadataIndexStats(
+        this.stats = new LedgerMetadataIndexStats(
             stats,
-            () -> (long) ledgersCount.get());*/
+            () -> (long) ledgersCount.get());
     }
 
     @Override
@@ -256,8 +251,9 @@ public class LedgerMetadataIndex implements Closeable {
 
     private static final Logger log = LoggerFactory.getLogger(LedgerMetadataIndex.class);
 
-    void setExplicitLac(long ledgerId, ByteBuf lac) throws IOException {
+    public void setExplicitLac(long ledgerId, ByteBuf lac) throws IOException {
         LedgerData ledgerData = ledgers.get(ledgerId);
+        System.out.println("LEDGER "+ledgerData);
         if (ledgerData != null) {
             LedgerData newLedgerData = LedgerData.newBuilder(ledgerData)
                     .setExplicitLac(ByteString.copyFrom(lac.nioBuffer())).build();

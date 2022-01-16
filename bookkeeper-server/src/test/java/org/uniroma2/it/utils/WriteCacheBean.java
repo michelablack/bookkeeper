@@ -1,4 +1,4 @@
-package org.apache.bookkeeper.bookie.storage.ldb.bean;
+package org.uniroma2.it.utils;
 
 import io.netty.buffer.ByteBuf;
 
@@ -23,6 +23,14 @@ public class WriteCacheBean {
         this.entry = entry;
         this.maxCacheSize = maxCacheSize;
         this.maxSegmentSize = maxSegmentSize;
+        this.reinsert = reinsert;
+    }
+
+    public WriteCacheBean(long ledgerId, long entryId, ByteBuf entry, int maxCacheSize, boolean reinsert) {
+        this.ledgerId = ledgerId;
+        this.entryId = entryId;
+        this.entry = entry;
+        this.maxCacheSize = maxCacheSize;
         this.reinsert = reinsert;
     }
 

@@ -143,7 +143,6 @@ public class WriteCache implements Closeable {
             offset = cacheOffset.getAndAdd(alignedSize);
             localOffset = (int) (offset & segmentOffsetMask);
             segmentIdx = (int) (offset >>> segmentOffsetBits);
-
             if ((offset + size) > maxCacheSize) {
                 // Cache is full
                 return false;
@@ -164,6 +163,7 @@ public class WriteCache implements Closeable {
         // should not happen and the compareAndSet should be always uncontended.
         while (true) {
             long currentLastEntryId = lastEntryMap.get(ledgerId);
+            System.out.println("CURRENT "+currentLastEntryId+" ENTRYID "+entryId);
             if (currentLastEntryId > entryId) {
                 // A newer entry is already there
                 break;

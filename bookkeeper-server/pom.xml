@@ -26,6 +26,17 @@
   <name>Apache BookKeeper :: Server</name>
   <dependencies>
     <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.15.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.6</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.bookkeeper</groupId>
       <artifactId>bookkeeper-common</artifactId>
       <version>${project.parent.version}</version>
@@ -232,10 +243,18 @@
         <configuration>
           <targetClasses>
             <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCache</param>
+            <param>org.apache.bookkeeper.bookie.storage.ldb.LedgerMetadataIndex</param>
           </targetClasses>
           <targetTests>
-            <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCachePutTest</param>
-            <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCacheGetTest</param>
+            <param>org.uniroma2.it.writeCacheTests.WriteCachePutTest</param>
+            <param>org.uniroma2.it.writeCacheTests.WriteCacheGetTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexDeleteTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexSetTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexGetTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexRangeTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexSetMasterKeyTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexSetLacTest</param>
+            <param>org.uniroma2.it.ledgerMetadataIndexTests.LedgerMetadataIndexSetFencedTest</param>
           </targetTests>
         </configuration>
       </plugin>
@@ -280,7 +299,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin><plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><configuration><source>11</source><target>11</target></configuration></plugin>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
