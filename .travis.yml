@@ -4,5 +4,5 @@ addons:
     organization: michelablack
   
 script:
-- mvn clean test jacoco:prepare-agent sonar:sonar
+- mvn clean verify sonar:sonar
 
