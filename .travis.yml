@@ -1,10 +1,13 @@
+dist: trusty
 language: java
 jdk:
 - openjdk11
 addons:
   sonarcloud:
     organization: "michelablack"
-    token: 
-    secure: "mqynCKZwj7KAU1FJQ9MZajaDJZhKgEmyt9z0TCiOjkwJUmtLQl/nmakZE0ezasrz3lnErPCaI+4z1PW+nk261l3lE5KNb09g+yn2NIfgY00cY8PbARZ9MI5B97tQPse0BKmh8tLjYZCEIdqzcrCKwRG4aZRY6YHSUSwbQ4EaChl7g4ufIhoeoAaTVczUbTOZhJJtD/TD8n9OhKAwGS4hSZOGb3Bc5sVvcbxMnP5Mh+yVP61SqyFVx4Afz4JxpyhTXnmK1xX7v0h5KRim1VpfkTl48eiZZitf0gjAgLHkOtZlRf7KhLI1YnBp2miVmShDFV7u2Qs9ckRK5rqwA2bMIxGKy3cDXdlLVbi7m3bLxoxz3Z9yrRSI2xalwk17i41QYu3wIZ80H7kWzeDoPqpXNK5krvIZPeBPFYzLES/7i7jtChJl6NlPrFzFVt1tEmExQDtRypaEveLt9J7pDdqYd/Jge7xnZMjylVPzn1Bl3LuZ4IBtxvCeP7ULZ9oY18rUmvdl3ldWozR7vZeBeeVktkiFMdaNAy1mWTDZdCgO9X9bZOmL7gMN5bUpGR8zRy6+a+lrDmHQF6/W8I/hEQ+/iZZ62EVaPepL8H2xa5EJ8JFGEYwHr38lAJh3T9zibn4eV/TvVt8XetuOBA9fHI5kDoottXSuEWUTnWBw+45Vnck="
+    token:
+        secure: "6d650eecef23cf16d16ac6cfb14dca78effecee6"
+
 script:
-- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=michelablack_bookkeeper
+- mvn clean verify sonar:sonar -X
+
