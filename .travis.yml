@@ -7,5 +7,5 @@ addons:
 
   
 script:
-- mvn clean verify sonar:sonar -Dsonar.projectKey=michelablack_bookkeeper
+- mvn clean verify sonar:sonar -X
 
