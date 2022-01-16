@@ -1,0 +1,14 @@
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexImpl.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/utils/MemoryAppender.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexDeleteTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexRangeTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/utils/MyRunnable.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/writeCacheTests/WriteCachePutTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/writeCacheTests/WriteCacheGetTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetMasterKeyTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetLacTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexGetTest.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/utils/WriteCacheBean.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/utils/LedgerMetadataBean.java
+/home/michelablack/bookkeeper/bookkeeper-server/src/test/java/org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetFencedTest.java

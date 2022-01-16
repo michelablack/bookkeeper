@@ -137,7 +137,7 @@ public class LedgerMetadataIndexSetFencedTest {
         }
     }
 
-    @Test
+    /**@Test
     public void deleteTest() throws IOException {
         boolean result;
         Runnable r = new MyRunnable(this.ledgerMetadataIndex, this.ledgerId);
@@ -157,7 +157,7 @@ public class LedgerMetadataIndexSetFencedTest {
 
         this.thread.interrupt();
 
-    }
+    }*/
 
     @After
     public void cleanEnv(){

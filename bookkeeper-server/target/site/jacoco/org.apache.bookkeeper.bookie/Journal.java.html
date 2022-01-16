@@ -1,0 +1,1219 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="it"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Journal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Apache BookKeeper :: Server</a> &gt; <a href="index.source.html" class="el_package">org.apache.bookkeeper.bookie</a> &gt; <span class="el_source">Journal.java</span></div><h1>Journal.java</h1><pre class="source lang-java linenums">/**
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ */
+
+package org.apache.bookkeeper.bookie;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import com.google.common.util.concurrent.MoreExecutors;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.util.Recycler;
+import io.netty.util.Recycler.Handle;
+import io.netty.util.concurrent.DefaultThreadFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.bookkeeper.bookie.LedgerDirsManager.NoWritableLedgerDirException;
+import org.apache.bookkeeper.bookie.stats.JournalStats;
+import org.apache.bookkeeper.common.collections.BlockingMpscQueue;
+import org.apache.bookkeeper.common.collections.RecyclableArrayList;
+import org.apache.bookkeeper.common.util.MemoryLimitController;
+import org.apache.bookkeeper.common.util.affinity.CpuAffinity;
+import org.apache.bookkeeper.conf.ServerConfiguration;
+import org.apache.bookkeeper.proto.BookkeeperInternalCallbacks.WriteCallback;
+import org.apache.bookkeeper.stats.Counter;
+import org.apache.bookkeeper.stats.NullStatsLogger;
+import org.apache.bookkeeper.stats.OpStatsLogger;
+import org.apache.bookkeeper.stats.StatsLogger;
+import org.apache.bookkeeper.util.IOUtils;
+import org.apache.bookkeeper.util.MathUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Provide journal related management.
+ */
+public class Journal extends BookieCriticalThread implements CheckpointSource {
+
+<span class="nc" id="L73">    private static final Logger LOG = LoggerFactory.getLogger(Journal.class);</span>
+
+<span class="nc" id="L75">    private static final RecyclableArrayList.Recycler&lt;QueueEntry&gt; entryListRecycler =</span>
+        new RecyclableArrayList.Recycler&lt;QueueEntry&gt;();
+<span class="nc" id="L77">    private static final RecyclableArrayList&lt;QueueEntry&gt; EMPTY_ARRAY_LIST = new RecyclableArrayList&lt;&gt;();</span>
+
+    /**
+     * Filter to pickup journals.
+     */
+    public interface JournalIdFilter {
+        boolean accept(long journalId);
+    }
+
+    /**
+     * For testability.
+     */
+    @FunctionalInterface
+    public interface BufferedChannelBuilder {
+<span class="nc" id="L91">        BufferedChannelBuilder DEFAULT_BCBUILDER = (FileChannel fc,</span>
+<span class="nc" id="L92">                int capacity) -&gt; new BufferedChannel(UnpooledByteBufAllocator.DEFAULT, fc, capacity);</span>
+
+        BufferedChannel create(FileChannel fc, int capacity) throws IOException;
+    }
+
+
+
+    /**
+     * List all journal ids by a specified journal id filer.
+     *
+     * @param journalDir journal dir
+     * @param filter journal id filter
+     * @return list of filtered ids
+     */
+    static List&lt;Long&gt; listJournalIds(File journalDir, JournalIdFilter filter) {
+<span class="nc" id="L107">        File[] logFiles = journalDir.listFiles();</span>
+<span class="nc bnc" id="L108" title="All 4 branches missed.">        if (logFiles == null || logFiles.length == 0) {</span>
+<span class="nc" id="L109">            return Collections.emptyList();</span>
+        }
+<span class="nc" id="L111">        List&lt;Long&gt; logs = new ArrayList&lt;Long&gt;();</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        for (File f: logFiles) {</span>
+<span class="nc" id="L113">            String name = f.getName();</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">            if (!name.endsWith(&quot;.txn&quot;)) {</span>
+<span class="nc" id="L115">                continue;</span>
+            }
+<span class="nc" id="L117">            String idString = name.split(&quot;\\.&quot;)[0];</span>
+<span class="nc" id="L118">            long id = Long.parseLong(idString, 16);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (filter != null) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if (filter.accept(id)) {</span>
+<span class="nc" id="L121">                    logs.add(id);</span>
+                }
+            } else {
+<span class="nc" id="L124">                logs.add(id);</span>
+            }
+        }
+<span class="nc" id="L127">        Collections.sort(logs);</span>
+<span class="nc" id="L128">        return logs;</span>
+    }
+
+    /**
+     * A wrapper over log mark to provide a checkpoint for users of journal
+     * to do checkpointing.
+     */
+    private static class LogMarkCheckpoint implements Checkpoint {
+        final LastLogMark mark;
+
+<span class="nc" id="L138">        public LogMarkCheckpoint(LastLogMark checkpoint) {</span>
+<span class="nc" id="L139">            this.mark = checkpoint;</span>
+<span class="nc" id="L140">        }</span>
+
+        @Override
+        public int compareTo(Checkpoint o) {
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (o == Checkpoint.MAX) {</span>
+<span class="nc" id="L145">                return -1;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">            } else if (o == Checkpoint.MIN) {</span>
+<span class="nc" id="L147">                return 1;</span>
+            }
+<span class="nc" id="L149">            return mark.getCurMark().compare(((LogMarkCheckpoint) o).mark.getCurMark());</span>
+        }
+
+        @Override
+        public boolean equals(Object o) {
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (!(o instanceof LogMarkCheckpoint)) {</span>
+<span class="nc" id="L155">                return false;</span>
+            }
+<span class="nc bnc" id="L157" title="All 2 branches missed.">            return 0 == compareTo((LogMarkCheckpoint) o);</span>
+        }
+
+        @Override
+        public int hashCode() {
+<span class="nc" id="L162">            return mark.hashCode();</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L167">            return mark.toString();</span>
+        }
+    }
+
+    /**
+     * Last Log Mark.
+     */
+    public class LastLogMark {
+        private final LogMark curMark;
+
+<span class="nc" id="L177">        LastLogMark(long logId, long logPosition) {</span>
+<span class="nc" id="L178">            this.curMark = new LogMark(logId, logPosition);</span>
+<span class="nc" id="L179">        }</span>
+
+        void setCurLogMark(long logId, long logPosition) {
+<span class="nc" id="L182">            curMark.setLogMark(logId, logPosition);</span>
+<span class="nc" id="L183">        }</span>
+
+        LastLogMark markLog() {
+<span class="nc" id="L186">            return new LastLogMark(curMark.getLogFileId(), curMark.getLogFileOffset());</span>
+        }
+
+        public LogMark getCurMark() {
+<span class="nc" id="L190">            return curMark;</span>
+        }
+
+        void rollLog(LastLogMark lastMark) throws NoWritableLedgerDirException {
+<span class="nc" id="L194">            byte[] buff = new byte[16];</span>
+<span class="nc" id="L195">            ByteBuffer bb = ByteBuffer.wrap(buff);</span>
+            // we should record &lt;logId, logPosition&gt; marked in markLog
+            // which is safe since records before lastMark have been
+            // persisted to disk (both index &amp; entry logger)
+<span class="nc" id="L199">            lastMark.getCurMark().writeLogMark(bb);</span>
+
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L202">                LOG.debug(&quot;RollLog to persist last marked log : {}&quot;, lastMark.getCurMark());</span>
+            }
+
+<span class="nc" id="L205">            List&lt;File&gt; writableLedgerDirs = ledgerDirsManager</span>
+<span class="nc" id="L206">                    .getWritableLedgerDirsForNewLog();</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            for (File dir : writableLedgerDirs) {</span>
+<span class="nc" id="L208">                File file = new File(dir, lastMarkFileName);</span>
+<span class="nc" id="L209">                FileOutputStream fos = null;</span>
+                try {
+<span class="nc" id="L211">                    fos = new FileOutputStream(file);</span>
+<span class="nc" id="L212">                    fos.write(buff);</span>
+<span class="nc" id="L213">                    fos.getChannel().force(true);</span>
+<span class="nc" id="L214">                    fos.close();</span>
+<span class="nc" id="L215">                    fos = null;</span>
+<span class="nc" id="L216">                } catch (IOException e) {</span>
+<span class="nc" id="L217">                    LOG.error(&quot;Problems writing to &quot; + file, e);</span>
+                } finally {
+                    // if stream already closed in try block successfully,
+                    // stream might have nullified, in such case below
+                    // call will simply returns
+<span class="nc" id="L222">                    IOUtils.close(LOG, fos);</span>
+                }
+<span class="nc" id="L224">            }</span>
+<span class="nc" id="L225">        }</span>
+
+        /**
+         * Read last mark from lastMark file.
+         * The last mark should first be max journal log id,
+         * and then max log position in max journal log.
+         */
+        void readLog() {
+<span class="nc" id="L233">            byte[] buff = new byte[16];</span>
+<span class="nc" id="L234">            ByteBuffer bb = ByteBuffer.wrap(buff);</span>
+<span class="nc" id="L235">            LogMark mark = new LogMark();</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            for (File dir: ledgerDirsManager.getAllLedgerDirs()) {</span>
+<span class="nc" id="L237">                File file = new File(dir, lastMarkFileName);</span>
+                try {
+<span class="nc" id="L239">                    try (FileInputStream fis = new FileInputStream(file)) {</span>
+<span class="nc" id="L240">                        int bytesRead = fis.read(buff);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                        if (bytesRead != 16) {</span>
+<span class="nc" id="L242">                            throw new IOException(&quot;Couldn't read enough bytes from lastMark.&quot;</span>
+                                                  + &quot; Wanted &quot; + 16 + &quot;, got &quot; + bytesRead);
+                        }
+                    }
+<span class="nc" id="L246">                    bb.clear();</span>
+<span class="nc" id="L247">                    mark.readLogMark(bb);</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                    if (curMark.compare(mark) &lt; 0) {</span>
+<span class="nc" id="L249">                        curMark.setLogMark(mark.getLogFileId(), mark.getLogFileOffset());</span>
+                    }
+<span class="nc" id="L251">                } catch (IOException e) {</span>
+<span class="nc" id="L252">                    LOG.error(&quot;Problems reading from &quot; + file + &quot; (this is okay if it is the first time starting this &quot;</span>
+                            + &quot;bookie&quot;);
+<span class="nc" id="L254">                }</span>
+<span class="nc" id="L255">            }</span>
+<span class="nc" id="L256">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L260">            return curMark.toString();</span>
+        }
+    }
+
+    /**
+     * Filter to return list of journals for rolling.
+     */
+    private static class JournalRollingFilter implements JournalIdFilter {
+
+        final LastLogMark lastMark;
+
+<span class="nc" id="L271">        JournalRollingFilter(LastLogMark lastMark) {</span>
+<span class="nc" id="L272">            this.lastMark = lastMark;</span>
+<span class="nc" id="L273">        }</span>
+
+        @Override
+        public boolean accept(long journalId) {
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            return journalId &lt; lastMark.getCurMark().getLogFileId();</span>
+        }
+    }
+
+    /**
+     * Scanner used to scan a journal.
+     */
+    public interface JournalScanner {
+        /**
+         * Process a journal entry.
+         *
+         * @param journalVersion Journal Version
+         * @param offset File offset of the journal entry
+         * @param entry Journal Entry
+         * @throws IOException
+         */
+        void process(int journalVersion, long offset, ByteBuffer entry) throws IOException;
+    }
+
+    /**
+     * Journal Entry to Record.
+     */
+    static class QueueEntry implements Runnable {
+        ByteBuf entry;
+        long ledgerId;
+        long entryId;
+        WriteCallback cb;
+        Object ctx;
+        long enqueueTime;
+        boolean ackBeforeSync;
+
+        OpStatsLogger journalAddEntryStats;
+        Counter journalCbQueueSize;
+
+
+        static QueueEntry create(ByteBuf entry, boolean ackBeforeSync, long ledgerId, long entryId,
+                WriteCallback cb, Object ctx, long enqueueTime, OpStatsLogger journalAddEntryStats,
+                Counter journalCbQueueSize) {
+<span class="nc" id="L315">            QueueEntry qe = RECYCLER.get();</span>
+<span class="nc" id="L316">            qe.entry = entry;</span>
+<span class="nc" id="L317">            qe.ackBeforeSync = ackBeforeSync;</span>
+<span class="nc" id="L318">            qe.cb = cb;</span>
+<span class="nc" id="L319">            qe.ctx = ctx;</span>
+<span class="nc" id="L320">            qe.ledgerId = ledgerId;</span>
+<span class="nc" id="L321">            qe.entryId = entryId;</span>
+<span class="nc" id="L322">            qe.enqueueTime = enqueueTime;</span>
+<span class="nc" id="L323">            qe.journalAddEntryStats = journalAddEntryStats;</span>
+<span class="nc" id="L324">            qe.journalCbQueueSize = journalCbQueueSize;</span>
+<span class="nc" id="L325">            return qe;</span>
+        }
+
+        @Override
+        public void run() {
+<span class="nc bnc" id="L330" title="All 2 branches missed.">            if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L331">                LOG.debug(&quot;Acknowledge Ledger: {}, Entry: {}&quot;, ledgerId, entryId);</span>
+            }
+<span class="nc" id="L333">            journalCbQueueSize.dec();</span>
+<span class="nc" id="L334">            journalAddEntryStats.registerSuccessfulEvent(MathUtils.elapsedNanos(enqueueTime), TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L335">            cb.writeComplete(0, ledgerId, entryId, null, ctx);</span>
+<span class="nc" id="L336">            recycle();</span>
+<span class="nc" id="L337">        }</span>
+
+        private final Handle&lt;QueueEntry&gt; recyclerHandle;
+
+<span class="nc" id="L341">        private QueueEntry(Handle&lt;QueueEntry&gt; recyclerHandle) {</span>
+<span class="nc" id="L342">            this.recyclerHandle = recyclerHandle;</span>
+<span class="nc" id="L343">        }</span>
+
+<span class="nc" id="L345">        private static final Recycler&lt;QueueEntry&gt; RECYCLER = new Recycler&lt;QueueEntry&gt;() {</span>
+            @Override
+            protected QueueEntry newObject(Recycler.Handle&lt;QueueEntry&gt; handle) {
+<span class="nc" id="L348">                return new QueueEntry(handle);</span>
+            }
+        };
+
+        private void recycle() {
+<span class="nc" id="L353">            recyclerHandle.recycle(this);</span>
+<span class="nc" id="L354">        }</span>
+    }
+
+    /**
+     * Token which represents the need to force a write to the Journal.
+     */
+    @VisibleForTesting
+    public class ForceWriteRequest {
+        private JournalChannel logFile;
+        private RecyclableArrayList&lt;QueueEntry&gt; forceWriteWaiters;
+        private boolean shouldClose;
+        private boolean isMarker;
+        private long lastFlushedPosition;
+        private long logId;
+        private long enqueueTime;
+
+        public int process(boolean shouldForceWrite) throws IOException {
+<span class="nc" id="L371">            journalStats.getForceWriteQueueSize().dec();</span>
+<span class="nc" id="L372">            journalStats.getFwEnqueueTimeStats()</span>
+<span class="nc" id="L373">                .registerSuccessfulEvent(MathUtils.elapsedNanos(enqueueTime), TimeUnit.NANOSECONDS);</span>
+
+<span class="nc bnc" id="L375" title="All 2 branches missed.">            if (isMarker) {</span>
+<span class="nc" id="L376">                return 0;</span>
+            }
+
+            try {
+<span class="nc bnc" id="L380" title="All 2 branches missed.">                if (shouldForceWrite) {</span>
+<span class="nc" id="L381">                    long startTime = MathUtils.nowInNano();</span>
+<span class="nc" id="L382">                    this.logFile.forceWrite(false);</span>
+<span class="nc" id="L383">                    journalStats.getJournalSyncStats()</span>
+<span class="nc" id="L384">                        .registerSuccessfulEvent(MathUtils.elapsedNanos(startTime), TimeUnit.NANOSECONDS);</span>
+                }
+<span class="nc" id="L386">                lastLogMark.setCurLogMark(this.logId, this.lastFlushedPosition);</span>
+
+                // Notify the waiters that the force write succeeded
+<span class="nc bnc" id="L389" title="All 2 branches missed.">                for (int i = 0; i &lt; forceWriteWaiters.size(); i++) {</span>
+<span class="nc" id="L390">                    QueueEntry qe = forceWriteWaiters.get(i);</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                    if (qe != null) {</span>
+<span class="nc" id="L392">                        cbThreadPool.execute(qe);</span>
+                    }
+                }
+
+<span class="nc" id="L396">                return forceWriteWaiters.size();</span>
+            } finally {
+<span class="nc" id="L398">                closeFileIfNecessary();</span>
+            }
+        }
+
+        public void closeFileIfNecessary() {
+            // Close if shouldClose is set
+<span class="nc bnc" id="L404" title="All 2 branches missed.">            if (shouldClose) {</span>
+                // We should guard against exceptions so its
+                // safe to call in catch blocks
+                try {
+<span class="nc" id="L408">                    logFile.close();</span>
+                    // Call close only once
+<span class="nc" id="L410">                    shouldClose = false;</span>
+<span class="nc" id="L411">                } catch (IOException ioe) {</span>
+<span class="nc" id="L412">                    LOG.error(&quot;I/O exception while closing file&quot;, ioe);</span>
+<span class="nc" id="L413">                }</span>
+            }
+<span class="nc" id="L415">        }</span>
+
+        private final Handle&lt;ForceWriteRequest&gt; recyclerHandle;
+
+<span class="nc" id="L419">        private ForceWriteRequest(Handle&lt;ForceWriteRequest&gt; recyclerHandle) {</span>
+<span class="nc" id="L420">            this.recyclerHandle = recyclerHandle;</span>
+<span class="nc" id="L421">        }</span>
+
+        private void recycle() {
+<span class="nc" id="L424">            logFile = null;</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">            if (forceWriteWaiters != null) {</span>
+<span class="nc" id="L426">                forceWriteWaiters.recycle();</span>
+<span class="nc" id="L427">                forceWriteWaiters = null;</span>
+            }
+<span class="nc" id="L429">            recyclerHandle.recycle(this);</span>
+<span class="nc" id="L430">        }</span>
+    }
+
+    private ForceWriteRequest createForceWriteRequest(JournalChannel logFile,
+                          long logId,
+                          long lastFlushedPosition,
+                          RecyclableArrayList&lt;QueueEntry&gt; forceWriteWaiters,
+                          boolean shouldClose,
+                          boolean isMarker) {
+<span class="nc" id="L439">        ForceWriteRequest req = forceWriteRequestsRecycler.get();</span>
+<span class="nc" id="L440">        req.forceWriteWaiters = forceWriteWaiters;</span>
+<span class="nc" id="L441">        req.logFile = logFile;</span>
+<span class="nc" id="L442">        req.logId = logId;</span>
+<span class="nc" id="L443">        req.lastFlushedPosition = lastFlushedPosition;</span>
+<span class="nc" id="L444">        req.shouldClose = shouldClose;</span>
+<span class="nc" id="L445">        req.isMarker = isMarker;</span>
+<span class="nc" id="L446">        req.enqueueTime = MathUtils.nowInNano();</span>
+<span class="nc" id="L447">        journalStats.getForceWriteQueueSize().inc();</span>
+<span class="nc" id="L448">        return req;</span>
+    }
+
+<span class="nc" id="L451">    private final Recycler&lt;ForceWriteRequest&gt; forceWriteRequestsRecycler = new Recycler&lt;ForceWriteRequest&gt;() {</span>
+                @Override
+                protected ForceWriteRequest newObject(
+                        Recycler.Handle&lt;ForceWriteRequest&gt; handle) {
+<span class="nc" id="L455">                    return new ForceWriteRequest(handle);</span>
+                }
+            };
+
+    /**
+     * ForceWriteThread is a background thread which makes the journal durable periodically.
+     *
+     */
+    private class ForceWriteThread extends BookieCriticalThread {
+<span class="nc" id="L464">        volatile boolean running = true;</span>
+        // This holds the queue entries that should be notified after a
+        // successful force write
+        Thread threadToNotifyOnEx;
+        // should we group force writes
+        private final boolean enableGroupForceWrites;
+        // make flush interval as a parameter
+<span class="nc" id="L471">        public ForceWriteThread(Thread threadToNotifyOnEx, boolean enableGroupForceWrites) {</span>
+<span class="nc" id="L472">            super(&quot;ForceWriteThread&quot;);</span>
+<span class="nc" id="L473">            this.threadToNotifyOnEx = threadToNotifyOnEx;</span>
+<span class="nc" id="L474">            this.enableGroupForceWrites = enableGroupForceWrites;</span>
+<span class="nc" id="L475">        }</span>
+        @Override
+        public void run() {
+<span class="nc" id="L478">            LOG.info(&quot;ForceWrite Thread started&quot;);</span>
+
+<span class="nc bnc" id="L480" title="All 2 branches missed.">            if (conf.isBusyWaitEnabled()) {</span>
+                try {
+<span class="nc" id="L482">                    CpuAffinity.acquireCore();</span>
+<span class="nc" id="L483">                } catch (Exception e) {</span>
+<span class="nc" id="L484">                    LOG.warn(&quot;Unable to acquire CPU core for Journal ForceWrite thread: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L485">                }</span>
+            }
+
+<span class="nc" id="L488">            boolean shouldForceWrite = true;</span>
+<span class="nc" id="L489">            int numReqInLastForceWrite = 0;</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">            while (running) {</span>
+<span class="nc" id="L491">                ForceWriteRequest req = null;</span>
+                try {
+<span class="nc" id="L493">                    req = forceWriteRequests.take();</span>
+                    // Force write the file and then notify the write completions
+                    //
+<span class="nc bnc" id="L496" title="All 2 branches missed.">                    if (!req.isMarker) {</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">                        if (shouldForceWrite) {</span>
+                            // if we are going to force write, any request that is already in the
+                            // queue will benefit from this force write - post a marker prior to issuing
+                            // the flush so until this marker is encountered we can skip the force write
+<span class="nc bnc" id="L501" title="All 2 branches missed.">                            if (enableGroupForceWrites) {</span>
+<span class="nc" id="L502">                                forceWriteRequests.put(createForceWriteRequest(req.logFile, 0, 0, null, false, true));</span>
+                            }
+
+                            // If we are about to issue a write, record the number of requests in
+                            // the last force write and then reset the counter so we can accumulate
+                            // requests in the write we are about to issue
+<span class="nc bnc" id="L508" title="All 2 branches missed.">                            if (numReqInLastForceWrite &gt; 0) {</span>
+<span class="nc" id="L509">                                journalStats.getForceWriteGroupingCountStats()</span>
+<span class="nc" id="L510">                                    .registerSuccessfulValue(numReqInLastForceWrite);</span>
+<span class="nc" id="L511">                                numReqInLastForceWrite = 0;</span>
+                            }
+                        }
+                    }
+<span class="nc" id="L515">                    numReqInLastForceWrite += req.process(shouldForceWrite);</span>
+
+<span class="nc bnc" id="L517" title="All 2 branches missed.">                    if (enableGroupForceWrites</span>
+                            // if its a marker we should switch back to flushing
+<span class="nc bnc" id="L519" title="All 2 branches missed.">                            &amp;&amp; !req.isMarker</span>
+                            // This indicates that this is the last request in a given file
+                            // so subsequent requests will go to a different file so we should
+                            // flush on the next request
+<span class="nc bnc" id="L523" title="All 2 branches missed.">                            &amp;&amp; !req.shouldClose) {</span>
+<span class="nc" id="L524">                        shouldForceWrite = false;</span>
+                    } else {
+<span class="nc" id="L526">                        shouldForceWrite = true;</span>
+                    }
+<span class="nc" id="L528">                } catch (IOException ioe) {</span>
+<span class="nc" id="L529">                    LOG.error(&quot;I/O exception in ForceWrite thread&quot;, ioe);</span>
+<span class="nc" id="L530">                    running = false;</span>
+<span class="nc" id="L531">                } catch (InterruptedException e) {</span>
+<span class="nc" id="L532">                    Thread.currentThread().interrupt();</span>
+<span class="nc" id="L533">                    LOG.info(&quot;ForceWrite thread interrupted&quot;);</span>
+                    // close is idempotent
+<span class="nc bnc" id="L535" title="All 2 branches missed.">                    if (null != req) {</span>
+<span class="nc" id="L536">                        req.shouldClose = true;</span>
+<span class="nc" id="L537">                        req.closeFileIfNecessary();</span>
+                    }
+<span class="nc" id="L539">                    running = false;</span>
+                } finally {
+<span class="nc bnc" id="L541" title="All 2 branches missed.">                    if (req != null) {</span>
+<span class="nc" id="L542">                        req.recycle();</span>
+                    }
+                }
+<span class="nc" id="L545">            }</span>
+            // Regardless of what caused us to exit, we should notify the
+            // the parent thread as it should either exit or be in the process
+            // of exiting else we will have write requests hang
+<span class="nc" id="L549">            threadToNotifyOnEx.interrupt();</span>
+<span class="nc" id="L550">        }</span>
+        // shutdown sync thread
+        void shutdown() throws InterruptedException {
+<span class="nc" id="L553">            running = false;</span>
+<span class="nc" id="L554">            this.interrupt();</span>
+<span class="nc" id="L555">            this.join();</span>
+<span class="nc" id="L556">        }</span>
+    }
+
+    static final int PADDING_MASK = -0x100;
+
+    static void writePaddingBytes(JournalChannel jc, ByteBuf paddingBuffer, int journalAlignSize)
+            throws IOException {
+<span class="nc" id="L563">        int bytesToAlign = (int) (jc.bc.position() % journalAlignSize);</span>
+<span class="nc bnc" id="L564" title="All 2 branches missed.">        if (0 != bytesToAlign) {</span>
+<span class="nc" id="L565">            int paddingBytes = journalAlignSize - bytesToAlign;</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">            if (paddingBytes &lt; 8) {</span>
+<span class="nc" id="L567">                paddingBytes = journalAlignSize - (8 - paddingBytes);</span>
+            } else {
+<span class="nc" id="L569">                paddingBytes -= 8;</span>
+            }
+<span class="nc" id="L571">            paddingBuffer.clear();</span>
+            // padding mask
+<span class="nc" id="L573">            paddingBuffer.writeInt(PADDING_MASK);</span>
+            // padding len
+<span class="nc" id="L575">            paddingBuffer.writeInt(paddingBytes);</span>
+            // padding bytes
+<span class="nc" id="L577">            paddingBuffer.writerIndex(paddingBuffer.writerIndex() + paddingBytes);</span>
+
+<span class="nc" id="L579">            jc.preAllocIfNeeded(paddingBuffer.readableBytes());</span>
+            // write padding bytes
+<span class="nc" id="L581">            jc.bc.write(paddingBuffer);</span>
+        }
+<span class="nc" id="L583">    }</span>
+
+    static final long MB = 1024 * 1024L;
+    static final int KB = 1024;
+    // max journal file size
+    final long maxJournalSize;
+    // pre-allocation size for the journal files
+    final long journalPreAllocSize;
+    // write buffer size for the journal files
+    final int journalWriteBufferSize;
+    // number journal files kept before marked journal
+    final int maxBackupJournals;
+
+    final File journalDirectory;
+    final ServerConfiguration conf;
+    final ForceWriteThread forceWriteThread;
+    // Time after which we will stop grouping and issue the flush
+    private final long maxGroupWaitInNanos;
+    // Threshold after which we flush any buffered journal entries
+    private final long bufferedEntriesThreshold;
+    // Threshold after which we flush any buffered journal writes
+    private final long bufferedWritesThreshold;
+    // should we flush if the queue is empty
+    private final boolean flushWhenQueueEmpty;
+    // should we hint the filesystem to remove pages from cache after force write
+    private final boolean removePagesFromCache;
+    private final int journalFormatVersionToWrite;
+    private final int journalAlignmentSize;
+    // control PageCache flush interval when syncData disabled to reduce disk io util
+    private final long journalPageCacheFlushIntervalMSec;
+
+    // Should data be fsynced on disk before triggering the callback
+    private final boolean syncData;
+
+<span class="nc" id="L617">    private final LastLogMark lastLogMark = new LastLogMark(0, 0);</span>
+
+    private static final String LAST_MARK_DEFAULT_NAME = &quot;lastMark&quot;;
+
+    private final String lastMarkFileName;
+
+    /**
+     * The thread pool used to handle callback.
+     */
+    private final ExecutorService cbThreadPool;
+
+    // journal entry queue to commit
+    final BlockingQueue&lt;QueueEntry&gt; queue;
+    final BlockingQueue&lt;ForceWriteRequest&gt; forceWriteRequests;
+
+<span class="nc" id="L632">    volatile boolean running = true;</span>
+    private final LedgerDirsManager ledgerDirsManager;
+    private final ByteBufAllocator allocator;
+    private final MemoryLimitController memoryLimitController;
+
+    // Expose Stats
+    private final JournalStats journalStats;
+
+    public Journal(int journalIndex, File journalDirectory, ServerConfiguration conf,
+            LedgerDirsManager ledgerDirsManager) {
+<span class="nc" id="L642">        this(journalIndex, journalDirectory, conf, ledgerDirsManager, NullStatsLogger.INSTANCE,</span>
+                UnpooledByteBufAllocator.DEFAULT);
+<span class="nc" id="L644">    }</span>
+
+    public Journal(int journalIndex, File journalDirectory, ServerConfiguration conf,
+            LedgerDirsManager ledgerDirsManager, StatsLogger statsLogger, ByteBufAllocator allocator) {
+<span class="nc" id="L648">        super(&quot;BookieJournal-&quot; + conf.getBookiePort());</span>
+<span class="nc" id="L649">        this.allocator = allocator;</span>
+
+<span class="nc bnc" id="L651" title="All 2 branches missed.">        if (conf.isBusyWaitEnabled()) {</span>
+            // To achieve lower latency, use busy-wait blocking queue implementation
+<span class="nc" id="L653">            queue = new BlockingMpscQueue&lt;&gt;(conf.getJournalQueueSize());</span>
+<span class="nc" id="L654">            forceWriteRequests = new BlockingMpscQueue&lt;&gt;(conf.getJournalQueueSize());</span>
+        } else {
+<span class="nc" id="L656">            queue = new ArrayBlockingQueue&lt;&gt;(conf.getJournalQueueSize());</span>
+<span class="nc" id="L657">            forceWriteRequests = new ArrayBlockingQueue&lt;&gt;(conf.getJournalQueueSize());</span>
+        }
+
+        // Adjust the journal max memory in case there are multiple journals configured.
+<span class="nc" id="L661">        long journalMaxMemory = conf.getJournalMaxMemorySizeMb() / conf.getJournalDirNames().length * 1024 * 1024;</span>
+<span class="nc" id="L662">        this.memoryLimitController = new MemoryLimitController(journalMaxMemory);</span>
+<span class="nc" id="L663">        this.ledgerDirsManager = ledgerDirsManager;</span>
+<span class="nc" id="L664">        this.conf = conf;</span>
+<span class="nc" id="L665">        this.journalDirectory = journalDirectory;</span>
+<span class="nc" id="L666">        this.maxJournalSize = conf.getMaxJournalSizeMB() * MB;</span>
+<span class="nc" id="L667">        this.journalPreAllocSize = conf.getJournalPreAllocSizeMB() * MB;</span>
+<span class="nc" id="L668">        this.journalWriteBufferSize = conf.getJournalWriteBufferSizeKB() * KB;</span>
+<span class="nc" id="L669">        this.syncData = conf.getJournalSyncData();</span>
+<span class="nc" id="L670">        this.maxBackupJournals = conf.getMaxBackupJournals();</span>
+<span class="nc" id="L671">        this.forceWriteThread = new ForceWriteThread(this, conf.getJournalAdaptiveGroupWrites());</span>
+<span class="nc" id="L672">        this.maxGroupWaitInNanos = TimeUnit.MILLISECONDS.toNanos(conf.getJournalMaxGroupWaitMSec());</span>
+<span class="nc" id="L673">        this.bufferedWritesThreshold = conf.getJournalBufferedWritesThreshold();</span>
+<span class="nc" id="L674">        this.bufferedEntriesThreshold = conf.getJournalBufferedEntriesThreshold();</span>
+<span class="nc" id="L675">        this.journalFormatVersionToWrite = conf.getJournalFormatVersionToWrite();</span>
+<span class="nc" id="L676">        this.journalAlignmentSize = conf.getJournalAlignmentSize();</span>
+<span class="nc" id="L677">        this.journalPageCacheFlushIntervalMSec = conf.getJournalPageCacheFlushIntervalMSec();</span>
+<span class="nc bnc" id="L678" title="All 2 branches missed.">        if (conf.getNumJournalCallbackThreads() &gt; 0) {</span>
+<span class="nc" id="L679">            this.cbThreadPool = Executors.newFixedThreadPool(conf.getNumJournalCallbackThreads(),</span>
+                                                         new DefaultThreadFactory(&quot;bookie-journal-callback&quot;));
+        } else {
+<span class="nc" id="L682">            this.cbThreadPool = MoreExecutors.newDirectExecutorService();</span>
+        }
+
+        // Unless there is a cap on the max wait (which requires group force writes)
+        // we cannot skip flushing for queue empty
+<span class="nc bnc" id="L687" title="All 4 branches missed.">        this.flushWhenQueueEmpty = maxGroupWaitInNanos &lt;= 0 || conf.getJournalFlushWhenQueueEmpty();</span>
+
+<span class="nc" id="L689">        this.removePagesFromCache = conf.getJournalRemovePagesFromCache();</span>
+        // read last log mark
+<span class="nc bnc" id="L691" title="All 2 branches missed.">        if (conf.getJournalDirs().length == 1) {</span>
+<span class="nc" id="L692">            lastMarkFileName = LAST_MARK_DEFAULT_NAME;</span>
+        } else {
+<span class="nc" id="L694">            lastMarkFileName = LAST_MARK_DEFAULT_NAME + &quot;.&quot; + journalIndex;</span>
+        }
+<span class="nc" id="L696">        lastLogMark.readLog();</span>
+<span class="nc bnc" id="L697" title="All 2 branches missed.">        if (LOG.isDebugEnabled()) {</span>
+<span class="nc" id="L698">            LOG.debug(&quot;Last Log Mark : {}&quot;, lastLogMark.getCurMark());</span>
+        }
+
+        // Expose Stats
+<span class="nc" id="L702">        this.journalStats = new JournalStats(statsLogger);</span>
+<span class="nc" id="L703">    }</span>
+
+    JournalStats getJournalStats() {
+<span class="nc" id="L706">        return this.journalStats;</span>
+    }
+
+    public File getJournalDirectory() {
+<span class="nc" id="L710">        return journalDirectory;</span>
+    }
+
+    public LastLogMark getLastLogMark() {
+<span class="nc" id="L714">        return lastLogMark;</span>
+    }
+
+    /**
+     * Update lastLogMark of the journal
+     * Indicates that the file has been processed.
+     * @param id
+     * @param scanOffset
+     */
+    void setLastLogMark(Long id, long scanOffset) {
+<span class="nc" id="L724">        lastLogMark.setCurLogMark(id, scanOffset);</span>
+<span class="nc" id="L725">    }</span>
+
+    /**
+     * Application tried to schedule a checkpoint. After all the txns added
+     * before checkpoint are persisted, a &lt;i&gt;checkpoint&lt;/i&gt; will be returned
+     * to application. Application could use &lt;i&gt;checkpoint&lt;/i&gt; to do its logic.
+     */
+    @Override
+    public Checkpoint newCheckpoint() {
+<span class="nc" id="L734">        return new LogMarkCheckpoint(lastLogMark.markLog());</span>
+    }
+
+    /**
+     * Telling journal a checkpoint is finished.
+     *
+     * @throws IOException
+     */
+    @Override
+    public void checkpointComplete(Checkpoint checkpoint, boolean compact) throws IOException {
+<span class="nc bnc" id="L744" title="All 2 branches missed.">        if (!(checkpoint instanceof LogMarkCheckpoint)) {</span>
+<span class="nc" id="L745">            return; // we didn't create this checkpoint, so dont do anything with it</span>
+        }
+<span class="nc" id="L747">        LogMarkCheckpoint lmcheckpoint = (LogMarkCheckpoint) checkpoint;</span>
+<span class="nc" id="L748">        LastLogMark mark = lmcheckpoint.mark;</span>
+
+<span class="nc" id="L750">        mark.rollLog(mark);</span>
+<span class="nc bnc" id="L751" title="All 2 branches missed.">        if (compact) {</span>
+            // list the journals that have been marked
+<span class="nc" id="L753">            List&lt;Long&gt; logs = listJournalIds(journalDirectory, new JournalRollingFilter(mark));</span>
+            // keep MAX_BACKUP_JOURNALS journal files before marked journal
+<span class="nc bnc" id="L755" title="All 2 branches missed.">            if (logs.size() &gt;= maxBackupJournals) {</span>
+<span class="nc" id="L756">                int maxIdx = logs.size() - maxBackupJournals;</span>
+<span class="nc bnc" id="L757" title="All 2 branches missed.">                for (int i = 0; i &lt; maxIdx; i++) {</span>
+<span class="nc" id="L758">                    long id = logs.get(i);</span>
+                    // make sure the journal id is smaller than marked journal id
+<span class="nc bnc" id="L760" title="All 2 branches missed.">                    if (id &lt; mark.getCurMark().getLogFileId()) {</span>
+<span class="nc" id="L761">                        File journalFile = new File(journalDirectory, Long.toHexString(id) + &quot;.txn&quot;);</span>
+<span class="nc bnc" id="L762" title="All 2 branches missed.">                        if (!journalFile.delete()) {</span>
+<span class="nc" id="L763">                            LOG.warn(&quot;Could not delete old journal file {}&quot;, journalFile);</span>
+                        }
+<span class="nc" id="L765">                        LOG.info(&quot;garbage collected journal &quot; + journalFile.getName());</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L770">    }</span>
+
+    /**
+     * Scan the journal.
+     *
+     * @param journalId Journal Log Id
+     * @param journalPos Offset to start scanning
+     * @param scanner Scanner to handle entries
+     * @return scanOffset - represents the byte till which journal was read
+     * @throws IOException
+     */
+    public long scanJournal(long journalId, long journalPos, JournalScanner scanner)
+        throws IOException {
+        JournalChannel recLog;
+<span class="nc bnc" id="L784" title="All 2 branches missed.">        if (journalPos &lt;= 0) {</span>
+<span class="nc" id="L785">            recLog = new JournalChannel(journalDirectory, journalId, journalPreAllocSize, journalWriteBufferSize);</span>
+        } else {
+<span class="nc" id="L787">            recLog = new JournalChannel(journalDirectory, journalId, journalPreAllocSize, journalWriteBufferSize,</span>
+                    journalPos);
+        }
+<span class="nc" id="L790">        int journalVersion = recLog.getFormatVersion();</span>
+        try {
+<span class="nc" id="L792">            ByteBuffer lenBuff = ByteBuffer.allocate(4);</span>
+<span class="nc" id="L793">            ByteBuffer recBuff = ByteBuffer.allocate(64 * 1024);</span>
+            while (true) {
+                // entry start offset
+<span class="nc" id="L796">                long offset = recLog.fc.position();</span>
+                // start reading entry
+<span class="nc" id="L798">                lenBuff.clear();</span>
+<span class="nc" id="L799">                fullRead(recLog, lenBuff);</span>
+<span class="nc bnc" id="L800" title="All 2 branches missed.">                if (lenBuff.remaining() != 0) {</span>
+<span class="nc" id="L801">                    break;</span>
+                }
+<span class="nc" id="L803">                lenBuff.flip();</span>
+<span class="nc" id="L804">                int len = lenBuff.getInt();</span>
+<span class="nc bnc" id="L805" title="All 2 branches missed.">                if (len == 0) {</span>
+<span class="nc" id="L806">                    break;</span>
+                }
+<span class="nc" id="L808">                boolean isPaddingRecord = false;</span>
+<span class="nc bnc" id="L809" title="All 2 branches missed.">                if (len &lt; 0) {</span>
+<span class="nc bnc" id="L810" title="All 4 branches missed.">                    if (len == PADDING_MASK &amp;&amp; journalVersion &gt;= JournalChannel.V5) {</span>
+                        // skip padding bytes
+<span class="nc" id="L812">                        lenBuff.clear();</span>
+<span class="nc" id="L813">                        fullRead(recLog, lenBuff);</span>
+<span class="nc bnc" id="L814" title="All 2 branches missed.">                        if (lenBuff.remaining() != 0) {</span>
+<span class="nc" id="L815">                            break;</span>
+                        }
+<span class="nc" id="L817">                        lenBuff.flip();</span>
+<span class="nc" id="L818">                        len = lenBuff.getInt();</span>
+<span class="nc bnc" id="L819" title="All 2 branches missed.">                        if (len == 0) {</span>
+<span class="nc" id="L820">                            continue;</span>
+                        }
+<span class="nc" id="L822">                        isPaddingRecord = true;</span>
+                    } else {
+<span class="nc" id="L824">                        LOG.error(&quot;Invalid record found with negative length: {}&quot;, len);</span>
+<span class="nc" id="L825">                        throw new IOException(&quot;Invalid record found with negative length &quot; + len);</span>
+                    }
+                }
+<span class="nc" id="L828">                recBuff.clear();</span>
+<span class="nc bnc" id="L829" title="All 2 branches missed.">                if (recBuff.remaining() &lt; len) {</span>
+<span class="nc" id="L830">                    recBuff = ByteBuffer.allocate(len);</span>
+                }
+<span class="nc" id="L832">                recBuff.limit(len);</span>
+<span class="nc bnc" id="L833" title="All 2 branches missed.">                if (fullRead(recLog, recBuff) != len) {</span>
+                    // This seems scary, but it just means that this is where we
+                    // left off writing
+<span class="nc" id="L836">                    break;</span>
+                }
+<span class="nc" id="L838">                recBuff.flip();</span>
+<span class="nc bnc" id="L839" title="All 2 branches missed.">                if (!isPaddingRecord) {</span>
+<span class="nc" id="L840">                    scanner.process(journalVersion, offset, recBuff);</span>
+                }
+<span class="nc" id="L842">            }</span>
+<span class="nc" id="L843">            return recLog.fc.position();</span>
+        } finally {
+<span class="nc" id="L845">            recLog.close();</span>
+        }
+    }
+
+    public void logAddEntry(ByteBuffer entry, boolean ackBeforeSync, WriteCallback cb, Object ctx)
+            throws InterruptedException {
+<span class="nc" id="L851">        logAddEntry(Unpooled.wrappedBuffer(entry), ackBeforeSync, cb, ctx);</span>
+<span class="nc" id="L852">    }</span>
+
+    /**
+     * record an add entry operation in journal.
+     */
+    public void logAddEntry(ByteBuf entry, boolean ackBeforeSync, WriteCallback cb, Object ctx)
+            throws InterruptedException {
+<span class="nc" id="L859">        long ledgerId = entry.getLong(entry.readerIndex() + 0);</span>
+<span class="nc" id="L860">        long entryId = entry.getLong(entry.readerIndex() + 8);</span>
+<span class="nc" id="L861">        logAddEntry(ledgerId, entryId, entry, ackBeforeSync, cb, ctx);</span>
+<span class="nc" id="L862">    }</span>
+
+    @VisibleForTesting
+    public void logAddEntry(long ledgerId, long entryId, ByteBuf entry,
+                            boolean ackBeforeSync, WriteCallback cb, Object ctx)
+            throws InterruptedException {
+        // Retain entry until it gets written to journal
+<span class="nc" id="L869">        entry.retain();</span>
+
+<span class="nc" id="L871">        journalStats.getJournalQueueSize().inc();</span>
+<span class="nc" id="L872">        journalStats.getJournalCbQueueSize().inc();</span>
+
+<span class="nc" id="L874">        memoryLimitController.reserveMemory(entry.readableBytes());</span>
+
+<span class="nc" id="L876">        queue.put(QueueEntry.create(</span>
+<span class="nc" id="L877">                entry, ackBeforeSync,  ledgerId, entryId, cb, ctx, MathUtils.nowInNano(),</span>
+<span class="nc" id="L878">                journalStats.getJournalAddEntryStats(),</span>
+<span class="nc" id="L879">                journalStats.getJournalCbQueueSize()));</span>
+<span class="nc" id="L880">    }</span>
+
+    void forceLedger(long ledgerId, WriteCallback cb, Object ctx) {
+<span class="nc" id="L883">        queue.add(QueueEntry.create(</span>
+                null, false /* ackBeforeSync */, ledgerId,
+<span class="nc" id="L885">                Bookie.METAENTRY_ID_FORCE_LEDGER, cb, ctx, MathUtils.nowInNano(),</span>
+<span class="nc" id="L886">                journalStats.getJournalForceLedgerStats(),</span>
+<span class="nc" id="L887">                journalStats.getJournalCbQueueSize()));</span>
+        // Increment afterwards because the add operation could fail.
+<span class="nc" id="L889">        journalStats.getJournalQueueSize().inc();</span>
+<span class="nc" id="L890">        journalStats.getJournalCbQueueSize().inc();</span>
+<span class="nc" id="L891">    }</span>
+
+    /**
+     * Get the length of journal entries queue.
+     *
+     * @return length of journal entry queue.
+     */
+    public int getJournalQueueLength() {
+<span class="nc" id="L899">        return queue.size();</span>
+    }
+
+    /**
+     * A thread used for persisting journal entries to journal files.
+     *
+     * &lt;p&gt;
+     * Besides persisting journal entries, it also takes responsibility of
+     * rolling journal files when a journal file reaches journal file size
+     * limitation.
+     * &lt;/p&gt;
+     * &lt;p&gt;
+     * During journal rolling, it first closes the writing journal, generates
+     * new journal file using current timestamp, and continue persistence logic.
+     * Those journals will be garbage collected in SyncThread.
+     * &lt;/p&gt;
+     * @see org.apache.bookkeeper.bookie.SyncThread
+     */
+    @Override
+    public void run() {
+<span class="nc" id="L919">        LOG.info(&quot;Starting journal on {}&quot;, journalDirectory);</span>
+
+<span class="nc bnc" id="L921" title="All 2 branches missed.">        if (conf.isBusyWaitEnabled()) {</span>
+            try {
+<span class="nc" id="L923">                CpuAffinity.acquireCore();</span>
+<span class="nc" id="L924">            } catch (Exception e) {</span>
+<span class="nc" id="L925">                LOG.warn(&quot;Unable to acquire CPU core for Journal thread: {}&quot;, e.getMessage(), e);</span>
+<span class="nc" id="L926">            }</span>
+        }
+
+<span class="nc" id="L929">        RecyclableArrayList&lt;QueueEntry&gt; toFlush = entryListRecycler.newInstance();</span>
+<span class="nc" id="L930">        int numEntriesToFlush = 0;</span>
+<span class="nc" id="L931">        ByteBuf lenBuff = Unpooled.buffer(4);</span>
+<span class="nc" id="L932">        ByteBuf paddingBuff = Unpooled.buffer(2 * conf.getJournalAlignmentSize());</span>
+<span class="nc" id="L933">        paddingBuff.writeZero(paddingBuff.capacity());</span>
+
+<span class="nc" id="L935">        BufferedChannel bc = null;</span>
+<span class="nc" id="L936">        JournalChannel logFile = null;</span>
+<span class="nc" id="L937">        forceWriteThread.start();</span>
+<span class="nc" id="L938">        Stopwatch journalCreationWatcher = Stopwatch.createUnstarted();</span>
+<span class="nc" id="L939">        Stopwatch journalFlushWatcher = Stopwatch.createUnstarted();</span>
+<span class="nc" id="L940">        long batchSize = 0;</span>
+        try {
+<span class="nc" id="L942">            List&lt;Long&gt; journalIds = listJournalIds(journalDirectory, null);</span>
+            // Should not use MathUtils.now(), which use System.nanoTime() and
+            // could only be used to measure elapsed time.
+            // http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/System.html#nanoTime%28%29
+<span class="nc bnc" id="L946" title="All 2 branches missed.">            long logId = journalIds.isEmpty() ? System.currentTimeMillis() : journalIds.get(journalIds.size() - 1);</span>
+<span class="nc" id="L947">            long lastFlushPosition = 0;</span>
+<span class="nc" id="L948">            boolean groupWhenTimeout = false;</span>
+
+<span class="nc" id="L950">            long dequeueStartTime = 0L;</span>
+<span class="nc" id="L951">            long lastFlushTimeMs = System.currentTimeMillis();</span>
+
+<span class="nc" id="L953">            QueueEntry qe = null;</span>
+            while (true) {
+                // new journal file to write
+<span class="nc bnc" id="L956" title="All 2 branches missed.">                if (null == logFile) {</span>
+
+<span class="nc" id="L958">                    logId = logId + 1;</span>
+
+<span class="nc" id="L960">                    journalCreationWatcher.reset().start();</span>
+<span class="nc" id="L961">                    logFile = new JournalChannel(journalDirectory, logId, journalPreAllocSize, journalWriteBufferSize,</span>
+                                        journalAlignmentSize, removePagesFromCache,
+<span class="nc" id="L963">                                        journalFormatVersionToWrite, getBufferedChannelBuilder());</span>
+
+<span class="nc" id="L965">                    journalStats.getJournalCreationStats().registerSuccessfulEvent(</span>
+<span class="nc" id="L966">                            journalCreationWatcher.stop().elapsed(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);</span>
+
+<span class="nc" id="L968">                    bc = logFile.getBufferedChannel();</span>
+
+<span class="nc" id="L970">                    lastFlushPosition = bc.position();</span>
+                }
+
+<span class="nc bnc" id="L973" title="All 2 branches missed.">                if (qe == null) {</span>
+<span class="nc bnc" id="L974" title="All 2 branches missed.">                    if (dequeueStartTime != 0) {</span>
+<span class="nc" id="L975">                        journalStats.getJournalProcessTimeStats()</span>
+<span class="nc" id="L976">                            .registerSuccessfulEvent(MathUtils.elapsedNanos(dequeueStartTime), TimeUnit.NANOSECONDS);</span>
+                    }
+
+<span class="nc bnc" id="L979" title="All 2 branches missed.">                    if (numEntriesToFlush == 0) {</span>
+<span class="nc" id="L980">                        qe = queue.take();</span>
+<span class="nc" id="L981">                        dequeueStartTime = MathUtils.nowInNano();</span>
+<span class="nc" id="L982">                        journalStats.getJournalQueueSize().dec();</span>
+<span class="nc" id="L983">                        journalStats.getJournalQueueStats()</span>
+<span class="nc" id="L984">                            .registerSuccessfulEvent(MathUtils.elapsedNanos(qe.enqueueTime), TimeUnit.NANOSECONDS);</span>
+                    } else {
+<span class="nc" id="L986">                        long pollWaitTimeNanos = maxGroupWaitInNanos</span>
+<span class="nc" id="L987">                                - MathUtils.elapsedNanos(toFlush.get(0).enqueueTime);</span>
+<span class="nc bnc" id="L988" title="All 4 branches missed.">                        if (flushWhenQueueEmpty || pollWaitTimeNanos &lt; 0) {</span>
+<span class="nc" id="L989">                            pollWaitTimeNanos = 0;</span>
+                        }
+<span class="nc" id="L991">                        qe = queue.poll(pollWaitTimeNanos, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L992">                        dequeueStartTime = MathUtils.nowInNano();</span>
+
+<span class="nc bnc" id="L994" title="All 2 branches missed.">                        if (qe != null) {</span>
+<span class="nc" id="L995">                            journalStats.getJournalQueueSize().dec();</span>
+<span class="nc" id="L996">                            journalStats.getJournalQueueStats()</span>
+<span class="nc" id="L997">                                .registerSuccessfulEvent(MathUtils.elapsedNanos(qe.enqueueTime), TimeUnit.NANOSECONDS);</span>
+                        }
+
+<span class="nc" id="L1000">                        boolean shouldFlush = false;</span>
+                        // We should issue a forceWrite if any of the three conditions below holds good
+                        // 1. If the oldest pending entry has been pending for longer than the max wait time
+<span class="nc bnc" id="L1003" title="All 4 branches missed.">                        if (maxGroupWaitInNanos &gt; 0 &amp;&amp; !groupWhenTimeout &amp;&amp; (MathUtils</span>
+<span class="nc bnc" id="L1004" title="All 2 branches missed.">                                .elapsedNanos(toFlush.get(0).enqueueTime) &gt; maxGroupWaitInNanos)) {</span>
+<span class="nc" id="L1005">                            groupWhenTimeout = true;</span>
+<span class="nc bnc" id="L1006" title="All 6 branches missed.">                        } else if (maxGroupWaitInNanos &gt; 0 &amp;&amp; groupWhenTimeout</span>
+                            &amp;&amp; (qe == null // no entry to group
+<span class="nc bnc" id="L1008" title="All 2 branches missed.">                                || MathUtils.elapsedNanos(qe.enqueueTime) &lt; maxGroupWaitInNanos)) {</span>
+                            // when group timeout, it would be better to look forward, as there might be lots of
+                            // entries already timeout
+                            // due to a previous slow write (writing to filesystem which impacted by force write).
+                            // Group those entries in the queue
+                            // a) already timeout
+                            // b) limit the number of entries to group
+<span class="nc" id="L1015">                            groupWhenTimeout = false;</span>
+<span class="nc" id="L1016">                            shouldFlush = true;</span>
+<span class="nc" id="L1017">                            journalStats.getFlushMaxWaitCounter().inc();</span>
+<span class="nc bnc" id="L1018" title="All 4 branches missed.">                        } else if (qe != null</span>
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">                                &amp;&amp; ((bufferedEntriesThreshold &gt; 0 &amp;&amp; toFlush.size() &gt; bufferedEntriesThreshold)</span>
+<span class="nc bnc" id="L1020" title="All 2 branches missed.">                                || (bc.position() &gt; lastFlushPosition + bufferedWritesThreshold))) {</span>
+                            // 2. If we have buffered more than the buffWriteThreshold or bufferedEntriesThreshold
+<span class="nc" id="L1022">                            groupWhenTimeout = false;</span>
+<span class="nc" id="L1023">                            shouldFlush = true;</span>
+<span class="nc" id="L1024">                            journalStats.getFlushMaxOutstandingBytesCounter().inc();</span>
+<span class="nc bnc" id="L1025" title="All 4 branches missed.">                        } else if (qe == null &amp;&amp; flushWhenQueueEmpty) {</span>
+                            // We should get here only if we flushWhenQueueEmpty is true else we would wait
+                            // for timeout that would put is past the maxWait threshold
+                            // 3. If the queue is empty i.e. no benefit of grouping. This happens when we have one
+                            // publish at a time - common case in tests.
+<span class="nc" id="L1030">                            groupWhenTimeout = false;</span>
+<span class="nc" id="L1031">                            shouldFlush = true;</span>
+<span class="nc" id="L1032">                            journalStats.getFlushEmptyQueueCounter().inc();</span>
+                        }
+
+                        // toFlush is non null and not empty so should be safe to access getFirst
+<span class="nc bnc" id="L1036" title="All 2 branches missed.">                        if (shouldFlush) {</span>
+<span class="nc bnc" id="L1037" title="All 2 branches missed.">                            if (journalFormatVersionToWrite &gt;= JournalChannel.V5) {</span>
+<span class="nc" id="L1038">                                writePaddingBytes(logFile, paddingBuff, journalAlignmentSize);</span>
+                            }
+<span class="nc" id="L1040">                            journalFlushWatcher.reset().start();</span>
+<span class="nc" id="L1041">                            bc.flush();</span>
+
+<span class="nc bnc" id="L1043" title="All 2 branches missed.">                            for (int i = 0; i &lt; toFlush.size(); i++) {</span>
+<span class="nc" id="L1044">                                QueueEntry entry = toFlush.get(i);</span>
+<span class="nc bnc" id="L1045" title="All 6 branches missed.">                                if (entry != null &amp;&amp; (!syncData || entry.ackBeforeSync)) {</span>
+<span class="nc" id="L1046">                                    toFlush.set(i, null);</span>
+<span class="nc" id="L1047">                                    numEntriesToFlush--;</span>
+<span class="nc" id="L1048">                                    cbThreadPool.execute(entry);</span>
+                                }
+                            }
+
+<span class="nc" id="L1052">                            lastFlushPosition = bc.position();</span>
+<span class="nc" id="L1053">                            journalStats.getJournalFlushStats().registerSuccessfulEvent(</span>
+<span class="nc" id="L1054">                                    journalFlushWatcher.stop().elapsed(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);</span>
+
+                            // Trace the lifetime of entries through persistence
+<span class="nc bnc" id="L1057" title="All 2 branches missed.">                            if (LOG.isDebugEnabled()) {</span>
+<span class="nc bnc" id="L1058" title="All 2 branches missed.">                                for (QueueEntry e : toFlush) {</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">                                    if (e != null) {</span>
+<span class="nc" id="L1060">                                        LOG.debug(&quot;Written and queuing for flush Ledger: {}  Entry: {}&quot;,</span>
+<span class="nc" id="L1061">                                                  e.ledgerId, e.entryId);</span>
+                                    }
+<span class="nc" id="L1063">                                }</span>
+                            }
+
+<span class="nc" id="L1066">                            journalStats.getForceWriteBatchEntriesStats()</span>
+<span class="nc" id="L1067">                                .registerSuccessfulValue(numEntriesToFlush);</span>
+<span class="nc" id="L1068">                            journalStats.getForceWriteBatchBytesStats()</span>
+<span class="nc" id="L1069">                                .registerSuccessfulValue(batchSize);</span>
+
+<span class="nc bnc" id="L1071" title="All 2 branches missed.">                            boolean shouldRolloverJournal = (lastFlushPosition &gt; maxJournalSize);</span>
+                            // Trigger data sync to disk in the &quot;Force-Write&quot; thread.
+                            // Trigger data sync to disk has three situations:
+                            // 1. journalSyncData enabled, usually for SSD used as journal storage
+                            // 2. shouldRolloverJournal is true, that is the journal file reaches maxJournalSize
+                            // 3. if journalSyncData disabled and shouldRolloverJournal is false, we can use
+                            //   journalPageCacheFlushIntervalMSec to control sync frequency, preventing disk
+                            //   synchronize frequently, which will increase disk io util.
+                            //   when flush interval reaches journalPageCacheFlushIntervalMSec (default: 1s),
+                            //   it will trigger data sync to disk
+<span class="nc bnc" id="L1081" title="All 4 branches missed.">                            if (syncData</span>
+                                    || shouldRolloverJournal
+<span class="nc bnc" id="L1083" title="All 2 branches missed.">                                    || (System.currentTimeMillis() - lastFlushTimeMs</span>
+                                    &gt;= journalPageCacheFlushIntervalMSec)) {
+<span class="nc" id="L1085">                                forceWriteRequests.put(createForceWriteRequest(logFile, logId, lastFlushPosition,</span>
+                                        toFlush, shouldRolloverJournal, false));
+<span class="nc" id="L1087">                                lastFlushTimeMs = System.currentTimeMillis();</span>
+                            }
+<span class="nc" id="L1089">                            toFlush = entryListRecycler.newInstance();</span>
+<span class="nc" id="L1090">                            numEntriesToFlush = 0;</span>
+
+<span class="nc" id="L1092">                            batchSize = 0L;</span>
+                            // check whether journal file is over file limit
+<span class="nc bnc" id="L1094" title="All 2 branches missed.">                            if (shouldRolloverJournal) {</span>
+                                // if the journal file is rolled over, the journal file will be closed after last
+                                // entry is force written to disk.
+<span class="nc" id="L1097">                                logFile = null;</span>
+<span class="nc" id="L1098">                                continue;</span>
+                            }
+                        }
+                    }
+                }
+
+<span class="nc bnc" id="L1104" title="All 2 branches missed.">                if (!running) {</span>
+<span class="nc" id="L1105">                    LOG.info(&quot;Journal Manager is asked to shut down, quit.&quot;);</span>
+<span class="nc" id="L1106">                    break;</span>
+                }
+
+<span class="nc bnc" id="L1109" title="All 2 branches missed.">                if (qe == null) { // no more queue entry</span>
+<span class="nc" id="L1110">                    continue;</span>
+                }
+<span class="nc bnc" id="L1112" title="All 4 branches missed.">                if ((qe.entryId == Bookie.METAENTRY_ID_LEDGER_EXPLICITLAC)</span>
+                        &amp;&amp; (journalFormatVersionToWrite &lt; JournalChannel.V6)) {
+                    /*
+                     * this means we are using new code which supports
+                     * persisting explicitLac, but &quot;journalFormatVersionToWrite&quot;
+                     * is set to some older value (&lt; V6). In this case we
+                     * shouldn't write this special entry
+                     * (METAENTRY_ID_LEDGER_EXPLICITLAC) to Journal.
+                     */
+<span class="nc" id="L1121">                    memoryLimitController.releaseMemory(qe.entry.readableBytes());</span>
+<span class="nc" id="L1122">                    qe.entry.release();</span>
+<span class="nc bnc" id="L1123" title="All 2 branches missed.">                } else if (qe.entryId != Bookie.METAENTRY_ID_FORCE_LEDGER) {</span>
+<span class="nc" id="L1124">                    int entrySize = qe.entry.readableBytes();</span>
+<span class="nc" id="L1125">                    journalStats.getJournalWriteBytes().add(entrySize);</span>
+
+<span class="nc" id="L1127">                    batchSize += (4 + entrySize);</span>
+
+<span class="nc" id="L1129">                    lenBuff.clear();</span>
+<span class="nc" id="L1130">                    lenBuff.writeInt(entrySize);</span>
+
+                    // preAlloc based on size
+<span class="nc" id="L1133">                    logFile.preAllocIfNeeded(4 + entrySize);</span>
+
+<span class="nc" id="L1135">                    bc.write(lenBuff);</span>
+<span class="nc" id="L1136">                    bc.write(qe.entry);</span>
+<span class="nc" id="L1137">                    memoryLimitController.releaseMemory(qe.entry.readableBytes());</span>
+<span class="nc" id="L1138">                    qe.entry.release();</span>
+                }
+
+<span class="nc" id="L1141">                toFlush.add(qe);</span>
+<span class="nc" id="L1142">                numEntriesToFlush++;</span>
+<span class="nc" id="L1143">                qe = null;</span>
+            }
+<span class="nc" id="L1145">        } catch (IOException ioe) {</span>
+<span class="nc" id="L1146">            LOG.error(&quot;I/O exception in Journal thread!&quot;, ioe);</span>
+<span class="nc" id="L1147">        } catch (InterruptedException ie) {</span>
+<span class="nc" id="L1148">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L1149">            LOG.info(&quot;Journal exits when shutting down&quot;);</span>
+        } finally {
+            // There could be packets queued for forceWrite on this logFile
+            // That is fine as this exception is going to anyway take down the
+            // the bookie. If we execute this as a part of graceful shutdown,
+            // close will flush the file system cache making any previous
+            // cached writes durable so this is fine as well.
+<span class="nc" id="L1156">            IOUtils.close(LOG, bc);</span>
+        }
+<span class="nc" id="L1158">        LOG.info(&quot;Journal exited loop!&quot;);</span>
+<span class="nc" id="L1159">    }</span>
+
+    public BufferedChannelBuilder getBufferedChannelBuilder() {
+<span class="nc" id="L1162">        return (FileChannel fc, int capacity) -&gt; new BufferedChannel(allocator, fc, capacity);</span>
+    }
+
+    /**
+     * Shuts down the journal.
+     */
+    public synchronized void shutdown() {
+        try {
+<span class="nc bnc" id="L1170" title="All 2 branches missed.">            if (!running) {</span>
+<span class="nc" id="L1171">                return;</span>
+            }
+<span class="nc" id="L1173">            LOG.info(&quot;Shutting down Journal&quot;);</span>
+<span class="nc" id="L1174">            forceWriteThread.shutdown();</span>
+<span class="nc" id="L1175">            cbThreadPool.shutdown();</span>
+<span class="nc bnc" id="L1176" title="All 2 branches missed.">            if (!cbThreadPool.awaitTermination(5, TimeUnit.SECONDS)) {</span>
+<span class="nc" id="L1177">                LOG.warn(&quot;Couldn't shutdown journal callback thread gracefully. Forcing&quot;);</span>
+            }
+<span class="nc" id="L1179">            cbThreadPool.shutdownNow();</span>
+
+<span class="nc" id="L1181">            running = false;</span>
+<span class="nc" id="L1182">            this.interrupt();</span>
+<span class="nc" id="L1183">            this.join();</span>
+<span class="nc" id="L1184">            LOG.info(&quot;Finished Shutting down Journal thread&quot;);</span>
+<span class="nc" id="L1185">        } catch (InterruptedException ie) {</span>
+<span class="nc" id="L1186">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L1187">            LOG.warn(&quot;Interrupted during shutting down journal : &quot;, ie);</span>
+<span class="nc" id="L1188">        }</span>
+<span class="nc" id="L1189">    }</span>
+
+    private static int fullRead(JournalChannel fc, ByteBuffer bb) throws IOException {
+<span class="nc" id="L1192">        int total = 0;</span>
+<span class="nc bnc" id="L1193" title="All 2 branches missed.">        while (bb.remaining() &gt; 0) {</span>
+<span class="nc" id="L1194">            int rc = fc.read(bb);</span>
+<span class="nc bnc" id="L1195" title="All 2 branches missed.">            if (rc &lt;= 0) {</span>
+<span class="nc" id="L1196">                return total;</span>
+            }
+<span class="nc" id="L1198">            total += rc;</span>
+<span class="nc" id="L1199">        }</span>
+<span class="nc" id="L1200">        return total;</span>
+    }
+
+    //
+    /**
+     * Wait for the Journal thread to exit.
+     * This is method is needed in order to mock the journal, we can't mock final method of java.lang.Thread class
+     *
+     * @throws InterruptedException
+     */
+    @VisibleForTesting
+    public void joinThread() throws InterruptedException {
+<span class="nc" id="L1212">        join();</span>
+<span class="nc" id="L1213">    }</span>
+
+    long getMemoryUsage() {
+<span class="nc" id="L1216">        return memoryLimitController.currentUsage();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

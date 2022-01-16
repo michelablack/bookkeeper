@@ -1,0 +1,15 @@
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexGetTest.class
+org/uniroma2/it/utils/MyRunnable.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetFencedTest.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetTest.class
+org/uniroma2/it/utils/LedgerMetadataBean.class
+org/uniroma2/it/writeCacheTests/WriteCacheGetTest.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexImpl.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexDeleteTest.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexImpl$1.class
+org/uniroma2/it/utils/MemoryAppender.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexRangeTest.class
+org/uniroma2/it/utils/WriteCacheBean.class
+org/uniroma2/it/writeCacheTests/WriteCachePutTest.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetLacTest.class
+org/uniroma2/it/ledgerMetadataIndexTests/LedgerMetadataIndexSetMasterKeyTest.class
