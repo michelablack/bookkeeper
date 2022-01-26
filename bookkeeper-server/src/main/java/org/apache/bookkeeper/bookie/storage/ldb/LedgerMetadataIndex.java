@@ -253,7 +253,6 @@ public class LedgerMetadataIndex implements Closeable {
 
     public void setExplicitLac(long ledgerId, ByteBuf lac) throws IOException {
         LedgerData ledgerData = ledgers.get(ledgerId);
-        System.out.println("LEDGER "+ledgerData);
         if (ledgerData != null) {
             LedgerData newLedgerData = LedgerData.newBuilder(ledgerData)
                     .setExplicitLac(ByteString.copyFrom(lac.nioBuffer())).build();

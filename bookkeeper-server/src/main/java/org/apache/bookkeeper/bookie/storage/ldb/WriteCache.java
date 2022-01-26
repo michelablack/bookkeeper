@@ -163,7 +163,6 @@ public class WriteCache implements Closeable {
         // should not happen and the compareAndSet should be always uncontended.
         while (true) {
             long currentLastEntryId = lastEntryMap.get(ledgerId);
-            System.out.println("CURRENT "+currentLastEntryId+" ENTRYID "+entryId);
             if (currentLastEntryId > entryId) {
                 // A newer entry is already there
                 break;
